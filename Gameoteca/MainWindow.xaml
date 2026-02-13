@@ -1,0 +1,508 @@
+﻿<Window x:Class="Gameoteca.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Gameoteca"
+        Height="720" Width="1100"
+        MinHeight="600" MinWidth="900"
+        FontFamily="Segoe UI"
+        Background="Transparent"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+
+    <Window.Resources>
+
+        <!-- ====== CORES BASE (GAMER ROXO) ====== -->
+        <SolidColorBrush x:Key="TextMain" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#D6C8FF"/>
+        <SolidColorBrush x:Key="Stroke" Color="#4B2A86"/>
+
+        <SolidColorBrush x:Key="PanelBg" Color="#14072B"/>
+        <SolidColorBrush x:Key="PanelBg2" Color="#0F0521"/>
+        <SolidColorBrush x:Key="ControlBg" Color="#1A0B34"/>
+        <SolidColorBrush x:Key="ControlBgHover" Color="#231045"/>
+
+        <!-- Brilho / Neon -->
+        <SolidColorBrush x:Key="NeonStroke" Color="#C084FC"/>
+        <SolidColorBrush x:Key="NeonText" Color="#F3E8FF"/>
+
+        <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#A855F7" Offset="0"/>
+            <GradientStop Color="#7C3AED" Offset="0.55"/>
+            <GradientStop Color="#4C1D95" Offset="1"/>
+        </LinearGradientBrush>
+
+        <!-- =======================
+             BOTÕES (template gamer)
+             ======================= -->
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="MinWidth" Value="110"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#1A0B34"/>
+            <Setter Property="BorderBrush" Value="#4B2A86"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#231045"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#C084FC"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.90"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource PrimaryGradient}"/>
+            <Setter Property="BorderBrush" Value="#C084FC"/>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#3A1230"/>
+            <Setter Property="BorderBrush" Value="#FF7AB6"/>
+        </Style>
+
+        <!-- ====== TEXTBOX (NUNCA BRANCO) ====== -->
+        <Style TargetType="TextBox">
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="BorderBrush" Value="#4B2A86"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#1A0B34"/>
+            <Setter Property="CaretBrush" Value="#F3E8FF"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Style.Triggers>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="#C084FC"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- =======================
+             TABCONTROL (template)
+             ======================= -->
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid SnapsToDevicePixels="True">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Cabeçalho das abas -->
+                            <Border Grid.Row="0"
+                                    Background="#14072B"
+                                    BorderBrush="#4B2A86"
+                                    BorderThickness="1,1,1,0"
+                                    CornerRadius="12,12,0,0"
+                                    Padding="10,10,10,0">
+                                <TabPanel IsItemsHost="True" Background="Transparent"/>
+                            </Border>
+
+                            <!-- Conteúdo -->
+                            <Border Grid.Row="1"
+                                    Background="#0F0521"
+                                    BorderBrush="#4B2A86"
+                                    BorderThickness="1,0,1,1"
+                                    CornerRadius="0,12,12,12"
+                                    Padding="12">
+                                <ContentPresenter ContentSource="SelectedContent"/>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- =======================
+             TABITEM (abas “botão”)
+             ======================= -->
+        <Style TargetType="TabItem">
+            <Setter Property="Foreground" Value="#D6C8FF"/>
+            <Setter Property="Background" Value="#1A0B34"/>
+            <Setter Property="BorderBrush" Value="#4B2A86"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10,10,0,0"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#231045"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#C084FC"/>
+                                <Setter Property="Foreground" Value="#F3E8FF"/>
+                            </Trigger>
+
+                            <!-- Selecionado: “gruda” no conteúdo -->
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Margin" Value="0,0,8,-1"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryGradient}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#F3E8FF"/>
+                                <Setter TargetName="Bd" Property="BorderThickness" Value="1,1,1,0"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ====== DATAGRID (DARK ROXO) ====== -->
+        <Style TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="IsReadOnly" Value="False"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="AlternationCount" Value="2"/>
+            <Setter Property="Background" Value="#0F0521"/>
+            <Setter Property="RowBackground" Value="#0F0521"/>
+            <Setter Property="AlternatingRowBackground" Value="#13062A"/>
+            <Setter Property="BorderBrush" Value="#4B2A86"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="SelectionUnit" Value="FullRow"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#100524"/>
+            <Setter Property="Foreground" Value="#F3E8FF"/>
+            <Setter Property="BorderBrush" Value="#4B2A86"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+
+        <Style TargetType="DataGridRow">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1B0B38"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#2B0A52"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Window.Resources>
+
+    <!-- FUNDO TODO ROXO -->
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#070010" Offset="0"/>
+                <GradientStop Color="#12002A" Offset="0.35"/>
+                <GradientStop Color="#2B0A52" Offset="0.7"/>
+                <GradientStop Color="#0A0016" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP BAR -->
+        <Border Margin="14,14,14,10" CornerRadius="16" Padding="16,14" BorderThickness="1" BorderBrush="#4B2A86">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#12002A" Offset="0"/>
+                    <GradientStop Color="#1A0B34" Offset="0.55"/>
+                    <GradientStop Color="#12002A" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Título -->
+                <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <TextBlock Text="Gameoteca" FontSize="26" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                    <TextBlock Text="Biblioteca gamer: jogos + emuladores em um só lugar"
+                               FontSize="12" Foreground="#D6C8FF" Margin="0,3,0,0"/>
+                </StackPanel>
+
+                <!-- Busca (visual por enquanto) -->
+                <Border Grid.Column="2" HorizontalAlignment="Right" CornerRadius="12"
+                        Padding="12,10" BorderBrush="#4B2A86" BorderThickness="1"
+                        Background="#0F0521">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Buscar:" Foreground="#D6C8FF" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox Width="340"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Margin="0"
+                                 Padding="0"
+                                 ToolTip="Depois a gente liga isso no filtro da lista"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Salvar (canto superior direito) -->
+                <Button Grid.Column="3"
+                        Content="Salvar"
+                        Command="{Binding SaveCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Margin="12,0,0,0"
+                        MinWidth="130"/>
+            </Grid>
+        </Border>
+
+        <!-- CONTEÚDO -->
+        <Border Grid.Row="1" Margin="14,10,14,14" Padding="14" CornerRadius="16"
+                BorderThickness="1" BorderBrush="#4B2A86">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#14072B" Offset="0"/>
+                    <GradientStop Color="#0F0521" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <TabControl>
+
+                <!-- JOGOS -->
+                <TabItem Header="Jogos">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- BARRA DE AÇÕES -->
+                        <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#12002A" Offset="0"/>
+                                    <GradientStop Color="#1A0B34" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+
+                            <DockPanel>
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                                    <Button Content="Jogar"
+                                            Command="{Binding PlaySelectedCommand}"
+                                            Style="{StaticResource PrimaryButton}"/>
+
+                                    <Button Content="Procurar Jogo (.exe)..."
+                                            Command="{Binding BrowseGameExeCommand}"
+                                            MinWidth="190"/>
+                                </StackPanel>
+
+                                <TextBlock DockPanel.Dock="Right"
+                                           VerticalAlignment="Center"
+                                           Foreground="#D6C8FF"
+                                           Text="Dica: selecione um emulador na coluna 'Emulador'."/>
+                            </DockPanel>
+                        </Border>
+
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding Games}"
+                                  SelectedItem="{Binding SelectedGame}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Título" Width="2*"
+                                                    Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}"/>
+                                <DataGridTextColumn Header="Arquivo" Width="4*"
+                                                    Binding="{Binding FilePath, UpdateSourceTrigger=PropertyChanged}"/>
+                                <DataGridTextColumn Header="Plataforma" Width="1.5*"
+                                                    Binding="{Binding Plataform, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                <DataGridComboBoxColumn Header="Emulador" Width="2*"
+                                    ItemsSource="{Binding DataContext.Emulators, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    DisplayMemberPath="Name"
+                                    SelectedValuePath="Id"
+                                    SelectedValueBinding="{Binding EmulatorId, UpdateSourceTrigger=PropertyChanged}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- EMULADORES -->
+                <TabItem Header="Emuladores">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- BARRA DE AÇÕES -->
+                        <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#12002A" Offset="0"/>
+                                    <GradientStop Color="#1A0B34" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+
+                            <DockPanel>
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                                    <Button Content="Adicionar"
+                                            Command="{Binding AddEmulatorCommand}"
+                                            MinWidth="130"/>
+
+                                    <Button Content="Procurar Emulador..."
+                                            Command="{Binding BrowseEmulatorExeCommand}"
+                                            MinWidth="180"/>
+
+                                    <Button Content="Remover Selecionado"
+                                            Command="{Binding RemoveSelectedEmulatorCommand}"
+                                            Style="{StaticResource DangerButton}"
+                                            MinWidth="190"/>
+                                </StackPanel>
+
+                                <TextBlock DockPanel.Dock="Right"
+                                           VerticalAlignment="Center"
+                                           Foreground="#D6C8FF"
+                                           Text="ArgsTemplate: use {rom}. Ex: &quot;{rom}&quot; ou --fullscreen &quot;{rom}&quot;"/>
+                            </DockPanel>
+                        </Border>
+
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding Emulators}"
+                                  SelectedItem="{Binding SelectedEmulator}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Nome" Width="2*"
+                                                    Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
+                                <DataGridTextColumn Header="Executável (.exe)" Width="4*"
+                                                    Binding="{Binding ExecutablePath, UpdateSourceTrigger=PropertyChanged}"/>
+                                <DataGridTextColumn Header="ArgsTemplate" Width="3*"
+                                                    Binding="{Binding ArgsTemplate, UpdateSourceTrigger=PropertyChanged}"/>
+                                <DataGridTextColumn Header="WorkingDir" Width="3*"
+                                                    Binding="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- PASTAS / SCAN -->
+                <TabItem Header="Pastas (Scan)">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- BARRA DE AÇÕES -->
+                        <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#12002A" Offset="0"/>
+                                    <GradientStop Color="#1A0B34" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+
+                            <DockPanel>
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                                    <Button Content="Adicionar"
+                                            Command="{Binding AddMappingCommand}"
+                                            MinWidth="130"/>
+
+                                    <Button Content="Escolher Pasta..."
+                                            Command="{Binding BrowseMappingFolderCommand}"
+                                            MinWidth="160"/>
+
+                                    <Button Content="Scan"
+                                            Command="{Binding ScanSelectedMappingCommand}"
+                                            Style="{StaticResource PrimaryButton}"
+                                            MinWidth="130"/>
+
+                                    <Button Content="Remover Selecionado"
+                                            Command="{Binding RemoveSelectedMappingCommand}"
+                                            Style="{StaticResource DangerButton}"
+                                            MinWidth="190"/>
+                                </StackPanel>
+
+                                <TextBlock DockPanel.Dock="Right"
+                                           VerticalAlignment="Center"
+                                           Foreground="#D6C8FF"
+                                           Text="Extensões: .zip;.7z;.iso (separe por ; , ou espaço)"/>
+                            </DockPanel>
+                        </Border>
+
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding Mappings}"
+                                  SelectedItem="{Binding SelectedMapping}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Pasta" Width="4*"
+                                                    Binding="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}"/>
+                                <DataGridTextColumn Header="Plataforma" Width="2*"
+                                                    Binding="{Binding Plataform, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                <DataGridComboBoxColumn Header="Emulador" Width="2*"
+                                    ItemsSource="{Binding DataContext.Emulators, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    DisplayMemberPath="Name"
+                                    SelectedValuePath="Id"
+                                    SelectedValueBinding="{Binding EmulatorId, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <DataGridTextColumn Header="Extensões" Width="2*"
+                                                    Binding="{Binding ExtensionsText, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+            </TabControl>
+        </Border>
+
+    </Grid>
+</Window>
