@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Gameoteca"
         mc:Ignorable="d"
         Title="Gameoteca"
         Height="720" Width="1100"
@@ -13,20 +14,7 @@
         SnapsToDevicePixels="True">
 
     <Window.Resources>
-
-        <!-- ====== CORES BASE (GAMER ROXO) ====== -->
-        <SolidColorBrush x:Key="TextMain" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="TextMuted" Color="#D6C8FF"/>
-        <SolidColorBrush x:Key="Stroke" Color="#4B2A86"/>
-
-        <SolidColorBrush x:Key="PanelBg" Color="#14072B"/>
-        <SolidColorBrush x:Key="PanelBg2" Color="#0F0521"/>
-        <SolidColorBrush x:Key="ControlBg" Color="#1A0B34"/>
-        <SolidColorBrush x:Key="ControlBgHover" Color="#231045"/>
-
-        <!-- Brilho / Neon -->
-        <SolidColorBrush x:Key="NeonStroke" Color="#C084FC"/>
-        <SolidColorBrush x:Key="NeonText" Color="#F3E8FF"/>
+        <local:BindingProxy x:Key="Proxy" Data="{Binding}" />
 
         <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
             <GradientStop Color="#A855F7" Offset="0"/>
@@ -34,43 +22,54 @@
             <GradientStop Color="#4C1D95" Offset="1"/>
         </LinearGradientBrush>
 
-        <!-- =======================
-             BOTÕES (template gamer)
-             ======================= -->
-        <Style TargetType="Button">
-            <Setter Property="Padding" Value="14,8"/>
-            <Setter Property="MinHeight" Value="36"/>
-            <Setter Property="MinWidth" Value="110"/>
-            <Setter Property="Margin" Value="0,0,10,0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Style TargetType="ContextMenu">
             <Setter Property="Background" Value="#1A0B34"/>
             <Setter Property="BorderBrush" Value="#4B2A86"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="HasDropShadow" Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="10"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"
-                                              RecognizesAccessKey="True"/>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="#1A0B34" BorderBrush="#4B2A86" BorderThickness="1" Padding="4" CornerRadius="8">
+                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#D6C8FF"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ContentPresenter Grid.Column="1" Content="{TemplateBinding Header}" 
+                                                  VerticalAlignment="Center" HorizontalAlignment="Left"/>
+
+                                <Path Grid.Column="2" x:Name="Arrow" Data="M0,0 L4,3.5 L0,7 Z" Fill="#D6C8FF" 
+                                      Margin="10,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#231045"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#C084FC"/>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#4B2A86"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter Property="Cursor" Value="Hand"/>
                             </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.90"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.55"/>
+                            <Trigger Property="Role" Value="SubmenuHeader">
+                                <Setter TargetName="Arrow" Property="Visibility" Value="Visible"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -78,17 +77,57 @@
             </Setter>
         </Style>
 
-        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="{StaticResource PrimaryGradient}"/>
-            <Setter Property="BorderBrush" Value="#C084FC"/>
+        <Style TargetType="Separator">
+            <Setter Property="Background" Value="#4B2A86"/>
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Margin" Value="0,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Background="{TemplateBinding Background}" Height="{TemplateBinding Height}" SnapsToDevicePixels="true"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="MinWidth" Value="110"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="{StaticResource PrimaryGradient}"/>
+            <Setter Property="BorderBrush" Value="#C084FC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
             <Setter Property="Background" Value="#3A1230"/>
             <Setter Property="BorderBrush" Value="#FF7AB6"/>
         </Style>
 
-        <!-- ====== TEXTBOX (NUNCA BRANCO) ====== -->
+        <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#1A0B34"/>
+            <Setter Property="BorderBrush" Value="#4B2A86"/>
+        </Style>
+
         <Style TargetType="TextBox">
             <Setter Property="MinHeight" Value="36"/>
             <Setter Property="Padding" Value="12,7"/>
@@ -97,7 +136,6 @@
             <Setter Property="Foreground" Value="#FFFFFF"/>
             <Setter Property="Background" Value="#1A0B34"/>
             <Setter Property="CaretBrush" Value="#F3E8FF"/>
-            <Setter Property="Margin" Value="0,0,10,0"/>
             <Style.Triggers>
                 <Trigger Property="IsKeyboardFocusWithin" Value="True">
                     <Setter Property="BorderBrush" Value="#C084FC"/>
@@ -105,9 +143,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- =======================
-             TABCONTROL (template)
-             ======================= -->
         <Style TargetType="TabControl">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -115,29 +150,13 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabControl">
-                        <Grid SnapsToDevicePixels="True">
+                        <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-
-                            <!-- Cabeçalho das abas -->
-                            <Border Grid.Row="0"
-                                    Background="#14072B"
-                                    BorderBrush="#4B2A86"
-                                    BorderThickness="1,1,1,0"
-                                    CornerRadius="12,12,0,0"
-                                    Padding="10,10,10,0">
-                                <TabPanel IsItemsHost="True" Background="Transparent"/>
-                            </Border>
-
-                            <!-- Conteúdo -->
-                            <Border Grid.Row="1"
-                                    Background="#0F0521"
-                                    BorderBrush="#4B2A86"
-                                    BorderThickness="1,0,1,1"
-                                    CornerRadius="0,12,12,12"
-                                    Padding="12">
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" IsItemsHost="True" Margin="0,0,0,15"/>
+                            <Border Grid.Row="1" Background="#0F0521" BorderBrush="#4B2A86" BorderThickness="1" CornerRadius="12" Padding="12">
                                 <ContentPresenter ContentSource="SelectedContent"/>
                             </Border>
                         </Grid>
@@ -146,48 +165,30 @@
             </Setter>
         </Style>
 
-        <!-- =======================
-             TABITEM (abas “botão”)
-             ======================= -->
         <Style TargetType="TabItem">
             <Setter Property="Foreground" Value="#D6C8FF"/>
             <Setter Property="Background" Value="#1A0B34"/>
             <Setter Property="BorderBrush" Value="#4B2A86"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="14,8"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Padding" Value="24,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="10,10,0,0"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter ContentSource="Header"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                            <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.FontWeight="SemiBold"/>
                         </Border>
-
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#231045"/>
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="#C084FC"/>
                                 <Setter Property="Foreground" Value="#F3E8FF"/>
                             </Trigger>
-
-                            <!-- Selecionado: “gruda” no conteúdo -->
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Margin" Value="0,0,8,-1"/>
                                 <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryGradient}"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#F3E8FF"/>
-                                <Setter TargetName="Bd" Property="BorderThickness" Value="1,1,1,0"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#C084FC"/>
                                 <Setter Property="Foreground" Value="#FFFFFF"/>
-                            </Trigger>
-
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.55"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -195,20 +196,15 @@
             </Setter>
         </Style>
 
-        <!-- ====== DATAGRID (DARK ROXO) ====== -->
         <Style TargetType="DataGrid">
             <Setter Property="AutoGenerateColumns" Value="False"/>
             <Setter Property="CanUserAddRows" Value="False"/>
-            <Setter Property="IsReadOnly" Value="False"/>
             <Setter Property="HeadersVisibility" Value="Column"/>
             <Setter Property="GridLinesVisibility" Value="None"/>
-            <Setter Property="RowHeaderWidth" Value="0"/>
-            <Setter Property="AlternationCount" Value="2"/>
-            <Setter Property="Background" Value="#0F0521"/>
-            <Setter Property="RowBackground" Value="#0F0521"/>
-            <Setter Property="AlternatingRowBackground" Value="#13062A"/>
-            <Setter Property="BorderBrush" Value="#4B2A86"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="RowBackground" Value="Transparent"/>
+            <Setter Property="AlternatingRowBackground" Value="#08FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="#FFFFFF"/>
             <Setter Property="SelectionUnit" Value="FullRow"/>
         </Style>
@@ -216,34 +212,98 @@
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="Background" Value="#100524"/>
             <Setter Property="Foreground" Value="#F3E8FF"/>
-            <Setter Property="BorderBrush" Value="#4B2A86"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="#4B2A86"/>
         </Style>
 
         <Style TargetType="DataGridCell">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#4C1D95"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <Style TargetType="DataGridRow">
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#1B0B38"/>
                 </Trigger>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#2B0A52"/>
+                    <Setter Property="Background" Value="#4C1D95"/>
                     <Setter Property="Foreground" Value="#FFFFFF"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#1A0B34"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#4B2A86"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Name="ToggleButton" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Grid.Column="2" Focusable="false" IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                            <Path x:Name="Arrow" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" Fill="#C084FC" Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="10,0,30,0" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                            <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Grid Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder" Background="#1A0B34" BorderThickness="1" BorderBrush="#C084FC"/>
+                                    <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#D6C8FF"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#4B2A86"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#A855F7"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
 
-    <!-- FUNDO TODO ROXO -->
     <Grid>
         <Grid.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -259,7 +319,6 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- TOP BAR -->
         <Border Margin="14,14,14,10" CornerRadius="16" Padding="16,14" BorderThickness="1" BorderBrush="#4B2A86">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -268,60 +327,29 @@
                     <GradientStop Color="#12002A" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
-
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="20"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-
-                <!-- Título -->
-                <StackPanel Grid.Column="0" Orientation="Vertical">
+                <StackPanel Grid.Column="0">
                     <TextBlock Text="Gameoteca" FontSize="26" FontWeight="SemiBold" Foreground="#FFFFFF"/>
-                    <TextBlock Text="Biblioteca gamer: jogos + emuladores em um só lugar"
-                               FontSize="12" Foreground="#D6C8FF" Margin="0,3,0,0"/>
+                    <TextBlock Text="Biblioteca gamer" FontSize="12" Foreground="#D6C8FF" Margin="0,3,0,0"/>
                 </StackPanel>
-
-                <!-- Busca (visual por enquanto) -->
-                <Border Grid.Column="2" HorizontalAlignment="Right" CornerRadius="12"
-                        Padding="12,10" BorderBrush="#4B2A86" BorderThickness="1"
-                        Background="#0F0521">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Grid.Column="2" HorizontalAlignment="Right" CornerRadius="12" Padding="12,10" BorderBrush="#4B2A86" BorderThickness="1" Background="#0F0521">
+                    <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Buscar:" Foreground="#D6C8FF" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBox Width="340"
-                                 BorderThickness="0"
-                                 Background="Transparent"
-                                 Margin="0"
-                                 Padding="0"
-                                 ToolTip="Depois a gente liga isso no filtro da lista"/>
+                        <TextBox Width="300" Background="Transparent" BorderThickness="0" Margin="0" Padding="0"/>
                     </StackPanel>
                 </Border>
-
-                <!-- Salvar (canto superior direito) -->
-                <Button Grid.Column="3"
-                        Content="Salvar"
-                        Command="{Binding SaveCommand}"
-                        Style="{StaticResource PrimaryButton}"
-                        Margin="12,0,0,0"
-                        MinWidth="130"/>
+                <Button Grid.Column="3" Content="Salvar" Command="{Binding SaveCommand}" Style="{StaticResource PrimaryButton}" Margin="12,0,0,0" MinWidth="130"/>
             </Grid>
         </Border>
 
-        <!-- CONTEÚDO -->
-        <Border Grid.Row="1" Margin="14,10,14,14" Padding="14" CornerRadius="16"
-                BorderThickness="1" BorderBrush="#4B2A86">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#14072B" Offset="0"/>
-                    <GradientStop Color="#0F0521" Offset="1"/>
-                </LinearGradientBrush>
-            </Border.Background>
-
+        <Border Grid.Row="1" Margin="14,0,14,14">
             <TabControl>
-
-                <!-- JOGOS -->
                 <TabItem Header="Jogos">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -329,55 +357,165 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <!-- BARRA DE AÇÕES -->
-                        <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#12002A" Offset="0"/>
-                                    <GradientStop Color="#1A0B34" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-
+                        <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12" Background="#12002A">
                             <DockPanel>
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                                    <Button Content="Jogar"
-                                            Command="{Binding PlaySelectedCommand}"
-                                            Style="{StaticResource PrimaryButton}"/>
-
-                                    <Button Content="Procurar Jogo (.exe)..."
-                                            Command="{Binding BrowseGameExeCommand}"
-                                            MinWidth="190"/>
+                                    <Button Content="Jogar" Command="{Binding PlaySelectedCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0"/>
+                                    <Button Content="Adicionar Jogo" Command="{Binding AddGameCommand}" MinWidth="180"/>
                                 </StackPanel>
-
-                                <TextBlock DockPanel.Dock="Right"
-                                           VerticalAlignment="Center"
-                                           Foreground="#D6C8FF"
-                                           Text="Dica: selecione um emulador na coluna 'Emulador'."/>
+                                <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Foreground="#D6C8FF" Text="Dica: Botão direito para opções."/>
                             </DockPanel>
                         </Border>
 
-                        <DataGrid Grid.Row="1"
-                                  ItemsSource="{Binding Games}"
-                                  SelectedItem="{Binding SelectedGame}">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Título" Width="2*"
-                                                    Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}"/>
-                                <DataGridTextColumn Header="Arquivo" Width="4*"
-                                                    Binding="{Binding FilePath, UpdateSourceTrigger=PropertyChanged}"/>
-                                <DataGridTextColumn Header="Plataforma" Width="1.5*"
-                                                    Binding="{Binding Plataform, UpdateSourceTrigger=PropertyChanged}"/>
+                        <ListBox Grid.Row="1"
+                                 ItemsSource="{Binding Games}" 
+                                 SelectedItem="{Binding SelectedGame}"
+                                 Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="0">
 
-                                <DataGridComboBoxColumn Header="Emulador" Width="2*"
-                                    ItemsSource="{Binding DataContext.Emulators, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    DisplayMemberPath="Name"
-                                    SelectedValuePath="Id"
-                                    SelectedValueBinding="{Binding EmulatorId, UpdateSourceTrigger=PropertyChanged}" />
-                            </DataGrid.Columns>
-                        </DataGrid>
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" IsItemsHost="True"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Width="160" Height="240" CornerRadius="12" Margin="8" Background="#1A0B34" BorderBrush="#4B2A86" BorderThickness="1">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="Black" BlurRadius="10" Opacity="0.4" ShadowDepth="4"/>
+                                        </Border.Effect>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <Border Grid.Row="0" CornerRadius="11,11,0,0" ClipToBounds="True">
+                                                <Grid>
+                                                    <Rectangle Fill="{StaticResource PrimaryGradient}" Opacity="0.3"/>
+                                                    <TextBlock Text="🎮" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#4B2A86" Opacity="0.5"/>
+                                                    <Image Source="{Binding ImagePath}" Stretch="UniformToFill"/>
+
+                                                    <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="8" 
+                                                            Background="#CC000000" CornerRadius="4" Padding="6,2">
+                                                        <TextBlock Text="{Binding Plataform}" Foreground="#C084FC" FontSize="11" FontWeight="Bold"/>
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+
+                                            <Border Grid.Row="1" Background="#231045" CornerRadius="0,0,11,11" Padding="10">
+                                                <TextBlock Text="{Binding Title}" Foreground="White" TextWrapping="Wrap" TextAlignment="Center" FontWeight="SemiBold" FontSize="13"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Margin" Value="4"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border x:Name="Bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="2" CornerRadius="14" Padding="2">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Bd" Property="BorderBrush" Value="#C084FC"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="Bd" Property="BorderBrush" Value="#A855F7"/>
+                                                        <Setter TargetName="Bd" Property="Background" Value="#10A855F7"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="Jogar" FontWeight="Bold" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.PlaySelectedCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                                <Separator/>
+
+                                                <MenuItem Header="Associar Emulador (Plataforma)" 
+                                                          ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.Emulators}">
+                                                    <MenuItem.ItemContainerStyle>
+                                                        <Style TargetType="MenuItem">
+                                                            <Setter Property="Header" Value="{Binding Name}"/>
+                                                            <Setter Property="Command" Value="{Binding Source={StaticResource Proxy}, Path=Data.SetGameEmulatorCommand}"/>
+                                                            <Setter Property="CommandParameter" Value="{Binding}"/>
+                                                        </Style>
+                                                    </MenuItem.ItemContainerStyle>
+                                                </MenuItem>
+
+                                                <MenuItem Header="Definir como Jogo de PC (Sem emulador)" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.ClearGameEmulatorCommand}" />
+
+                                                <Separator/>
+                                                <MenuItem Header="Alterar Capa / Imagem..." 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.ChangeGameImageCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                                <MenuItem Header="Renomear Título" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.RenameGameCommand}" 
+                                                          CommandParameter="{Binding}"/>
+
+                                                <MenuItem Header="Editar Executável (.exe)" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.BrowseGameExeCommand}" 
+                                                          CommandParameter="{Binding}">
+                                                    <MenuItem.Style>
+                                                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding EmulatorId}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </MenuItem.Style>
+                                                </MenuItem>
+
+                                                <MenuItem Header="Editar Caminho da ROM" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.BrowseGameExeCommand}" 
+                                                          CommandParameter="{Binding}">
+                                                    <MenuItem.Style>
+                                                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding EmulatorId}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </MenuItem.Style>
+                                                </MenuItem>
+
+                                                <Separator/>
+                                                <MenuItem Header="Abrir pasta" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.OpenGameFolderCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                                <Separator/>
+                                                <MenuItem Header="Excluir Jogo" Foreground="#FF7AB6" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.RemoveGameCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
                     </Grid>
                 </TabItem>
 
-                <!-- EMULADORES -->
                 <TabItem Header="Emuladores">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -385,56 +523,110 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <!-- BARRA DE AÇÕES -->
-                        <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#12002A" Offset="0"/>
-                                    <GradientStop Color="#1A0B34" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-
+                        <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12" Background="#12002A">
                             <DockPanel>
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                                    <Button Content="Adicionar"
-                                            Command="{Binding AddEmulatorCommand}"
-                                            MinWidth="130"/>
-
-                                    <Button Content="Procurar Emulador..."
-                                            Command="{Binding BrowseEmulatorExeCommand}"
-                                            MinWidth="180"/>
-
-                                    <Button Content="Remover Selecionado"
-                                            Command="{Binding RemoveSelectedEmulatorCommand}"
-                                            Style="{StaticResource DangerButton}"
-                                            MinWidth="190"/>
+                                    <Button Content="Adicionar Emulador" Command="{Binding AddEmulatorCommand}" MinWidth="180"/>
                                 </StackPanel>
-
-                                <TextBlock DockPanel.Dock="Right"
-                                           VerticalAlignment="Center"
-                                           Foreground="#D6C8FF"
-                                           Text="ArgsTemplate: use {rom}. Ex: &quot;{rom}&quot; ou --fullscreen &quot;{rom}&quot;"/>
+                                <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Foreground="#D6C8FF" Text="Dica: Botão direito para configurar."/>
                             </DockPanel>
                         </Border>
 
-                        <DataGrid Grid.Row="1"
-                                  ItemsSource="{Binding Emulators}"
-                                  SelectedItem="{Binding SelectedEmulator}">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Nome" Width="2*"
-                                                    Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
-                                <DataGridTextColumn Header="Executável (.exe)" Width="4*"
-                                                    Binding="{Binding ExecutablePath, UpdateSourceTrigger=PropertyChanged}"/>
-                                <DataGridTextColumn Header="ArgsTemplate" Width="3*"
-                                                    Binding="{Binding ArgsTemplate, UpdateSourceTrigger=PropertyChanged}"/>
-                                <DataGridTextColumn Header="WorkingDir" Width="3*"
-                                                    Binding="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
+                        <ListBox Grid.Row="1"
+                                 ItemsSource="{Binding Emulators}" 
+                                 SelectedItem="{Binding SelectedEmulator}"
+                                 Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="0">
+
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" IsItemsHost="True"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Width="160" Height="240" CornerRadius="12" Margin="8" Background="#1A0B34" BorderBrush="#4B2A86" BorderThickness="1">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="Black" BlurRadius="10" Opacity="0.4" ShadowDepth="4"/>
+                                        </Border.Effect>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Border Grid.Row="0" CornerRadius="11,11,0,0" ClipToBounds="True">
+                                                <Grid>
+                                                    <Rectangle Fill="{StaticResource PrimaryGradient}" Opacity="0.3"/>
+                                                    <TextBlock Text="⚙️" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#C084FC" Opacity="0.5"/>
+                                                    <Image Source="{Binding ImagePath}" Stretch="UniformToFill"/>
+                                                </Grid>
+                                            </Border>
+                                            <Border Grid.Row="1" Background="#231045" CornerRadius="0,0,11,11" Padding="10">
+                                                <TextBlock Text="{Binding Name}" Foreground="White" TextWrapping="Wrap" TextAlignment="Center" FontWeight="SemiBold" FontSize="13"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Margin" Value="4"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border x:Name="Bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="2" CornerRadius="14" Padding="2">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Bd" Property="BorderBrush" Value="#C084FC"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="Bd" Property="BorderBrush" Value="#A855F7"/>
+                                                        <Setter TargetName="Bd" Property="Background" Value="#10A855F7"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="Alterar Logo / Imagem..." 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.ChangeEmulatorImageCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                                <MenuItem Header="Renomear Emulador" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.RenameEmulatorCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                                <Separator/>
+                                                <MenuItem Header="Editar Executável (.exe)" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.BrowseEmulatorExeCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                                <Separator/>
+                                                <MenuItem Header="Abrir pasta" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.OpenEmulatorFolderCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                                <Separator/>
+                                                <MenuItem Header="Excluir Emulador" Foreground="#FF7AB6" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.RemoveEmulatorCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
                     </Grid>
                 </TabItem>
 
-                <!-- PASTAS / SCAN -->
                 <TabItem Header="Pastas (Scan)">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -442,67 +634,52 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <!-- BARRA DE AÇÕES -->
-                        <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#12002A" Offset="0"/>
-                                    <GradientStop Color="#1A0B34" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-
+                        <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12" Background="#12002A">
                             <DockPanel>
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                                    <Button Content="Adicionar"
-                                            Command="{Binding AddMappingCommand}"
-                                            MinWidth="130"/>
-
-                                    <Button Content="Escolher Pasta..."
-                                            Command="{Binding BrowseMappingFolderCommand}"
-                                            MinWidth="160"/>
-
-                                    <Button Content="Scan"
-                                            Command="{Binding ScanSelectedMappingCommand}"
-                                            Style="{StaticResource PrimaryButton}"
-                                            MinWidth="130"/>
-
-                                    <Button Content="Remover Selecionado"
-                                            Command="{Binding RemoveSelectedMappingCommand}"
-                                            Style="{StaticResource DangerButton}"
-                                            MinWidth="190"/>
+                                    <Button Content="Adicionar" Command="{Binding AddMappingCommand}" Margin="0,0,10,0"/>
+                                    <Button Content="Scan" Command="{Binding ScanSelectedMappingCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0"/>
+                                    <Button Content="Remover" Command="{Binding RemoveSelectedMappingCommand}" Style="{StaticResource DangerButton}"/>
                                 </StackPanel>
-
-                                <TextBlock DockPanel.Dock="Right"
-                                           VerticalAlignment="Center"
-                                           Foreground="#D6C8FF"
-                                           Text="Extensões: .zip;.7z;.iso (separe por ; , ou espaço)"/>
                             </DockPanel>
                         </Border>
 
-                        <DataGrid Grid.Row="1"
-                                  ItemsSource="{Binding Mappings}"
-                                  SelectedItem="{Binding SelectedMapping}">
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding Mappings}" SelectedItem="{Binding SelectedMapping}"
+                                  Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="Fazer Scan Agora" FontWeight="Bold" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.ScanSelectedMappingCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                                <MenuItem Header="Alterar Pasta..." 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.BrowseMappingFolderCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                                <Separator/>
+                                                <MenuItem Header="Excluir Mapeamento" Foreground="#FF7AB6" 
+                                                          Command="{Binding Source={StaticResource Proxy}, Path=Data.RemoveMappingCommand}" 
+                                                          CommandParameter="{Binding}"/>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGrid.RowStyle>
+
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Pasta" Width="4*"
-                                                    Binding="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}"/>
-                                <DataGridTextColumn Header="Plataforma" Width="2*"
-                                                    Binding="{Binding Plataform, UpdateSourceTrigger=PropertyChanged}"/>
-
+                                <DataGridTextColumn Header="Pasta" Width="3*" Binding="{Binding FolderPath}"/>
                                 <DataGridComboBoxColumn Header="Emulador" Width="2*"
-                                    ItemsSource="{Binding DataContext.Emulators, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    DisplayMemberPath="Name"
-                                    SelectedValuePath="Id"
-                                    SelectedValueBinding="{Binding EmulatorId, UpdateSourceTrigger=PropertyChanged}" />
-
-                                <DataGridTextColumn Header="Extensões" Width="2*"
-                                                    Binding="{Binding ExtensionsText, UpdateSourceTrigger=PropertyChanged}"/>
+                                                        ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.Emulators}"
+                                                        DisplayMemberPath="Name"
+                                                        SelectedValuePath="Id"
+                                                        SelectedValueBinding="{Binding EmulatorId, UpdateSourceTrigger=PropertyChanged}"/>
+                                <DataGridTextColumn Header="Extensões (.zip; .iso)" Width="2*" Binding="{Binding ExtensionsText}"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
                 </TabItem>
-
             </TabControl>
         </Border>
-
     </Grid>
 </Window>

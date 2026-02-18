@@ -1,21 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 
 namespace Gameoteca.Models
 {
-    public class GameItem
+    public partial class GameItem : ObservableObject
     {
-        public Guid Id { get; set; }
-        public string Title { get; set; } = "";
-        public string FilePath { get; set; } = ""; //Pasta de jogos e Roms
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-        public string? Plataform { get; set; } = ""; // Pasta de Emuladores
+        [ObservableProperty]
+        private string _title = "";
 
+        [ObservableProperty]
+        private string _filePath = "";
 
-        public Guid? EmulatorId { get; set; }
+        [ObservableProperty]
+        private string? _plataform = "PC";
 
+        [ObservableProperty]
+        private Guid? _emulatorId;
+
+        // NOVA PROPRIEDADE: Caminho da imagem de capa
+        [ObservableProperty]
+        private string? _imagePath;
     }
 }

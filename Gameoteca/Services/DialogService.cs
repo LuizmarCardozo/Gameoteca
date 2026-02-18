@@ -1,11 +1,6 @@
 ﻿using Ookii.Dialogs.Wpf;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Win32;
-
+using Gameoteca.Views; // Importante para achar a InputWindow
 
 namespace Gameoteca.Services
 {
@@ -22,7 +17,9 @@ namespace Gameoteca.Services
             };
 
             if (!string.IsNullOrWhiteSpace(initialDir))
-                dlg.InitialDirectory = initialDir;
+            {
+                try { dlg.InitialDirectory = initialDir; } catch { }
+            }
 
             return dlg.ShowDialog() == true ? dlg.FileName : null;
         }
@@ -37,6 +34,21 @@ namespace Gameoteca.Services
             };
 
             return dlg.ShowDialog() == true ? dlg.SelectedPath : null;
+        }
+
+        // Abre a janelinha roxa de input
+        public string? AskForText(string title, string currentValue)
+        {
+            // Certifique-se de que criou o InputWindow.xaml conforme o passo anterior
+            var window = new InputWindow(title, currentValue);
+
+            bool? result = window.ShowDialog();
+
+            if (result == true)
+            {
+                return window.ResultText;
+            }
+            return null;
         }
     }
 }

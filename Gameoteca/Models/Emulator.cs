@@ -1,20 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 
 namespace Gameoteca.Models
 {
-    public class Emulator
+    public partial class Emulator : ObservableObject
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = "";
-        public string ExecutablePath { get; set; } = "";
 
-        public string ArgsTemplate { get; set; } = "\"{rom}\"";
+        [ObservableProperty]
+        private string _name = "";
 
-        public string? WorkingDirectory { get; set; }
+        [ObservableProperty]
+        private string _executablePath = "";
 
+        [ObservableProperty]
+        private string _argsTemplate = "\"{rom}\"";
+
+        [ObservableProperty]
+        private string? _workingDirectory;
+
+        // NOVA PROPRIEDADE: Logo/Imagem do Emulador
+        [ObservableProperty]
+        private string? _imagePath;
     }
 }
