@@ -10,6 +10,7 @@ namespace Gameoteca.Models
         [ObservableProperty]
         private string _title = "";
 
+        // Continua sendo usado como "caminho base" (exe / url / lnk)
         [ObservableProperty]
         private string _filePath = "";
 
@@ -19,8 +20,17 @@ namespace Gameoteca.Models
         [ObservableProperty]
         private Guid? _emulatorId;
 
-        // NOVA PROPRIEDADE: Caminho da imagem de capa
+        // Caminho da imagem de capa
         [ObservableProperty]
         private string? _imagePath;
+
+        // ✅ NOVO: indica que esse item é um atalho (Steam/Epic/URL/lnk)
+        [ObservableProperty]
+        private bool _isShortcut;
+
+        // ✅ NOVO: para .url (atalho da Internet) a gente salva o URI real aqui
+        // Ex.: steam://rungameid/123456  ou  com.epicgames.launcher://apps/...
+        [ObservableProperty]
+        private string? _launchUri;
     }
 }

@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace Gameoteca.ViewModels
 {
@@ -23,7 +22,6 @@ namespace Gameoteca.ViewModels
         public ObservableCollection<GameItem> Games { get; } = new();
         public ObservableCollection<FolderMapping> Mappings { get; } = new();
 
-        // Lista de extensões para o seletor da aba Pastas
         public ObservableCollection<string> AvailableExtensions { get; } = new()
         {
             ".zip", ".7z", ".iso", ".bin", ".cue", ".smc", ".sfc", ".n64", ".z64", ".gba", ".nds", ".exe"
@@ -100,7 +98,7 @@ namespace Gameoteca.ViewModels
             await PersistAsync();
         }
 
-        // ✅ RENOMEAR JOGO (corrigido)
+        // ✅ RENOMEAR JOGO
         [RelayCommand]
         private async Task RenameGame(GameItem? item)
         {
@@ -119,7 +117,7 @@ namespace Gameoteca.ViewModels
             await PersistAsync();
         }
 
-        // ✅ RENOMEAR EMULADOR (corrigido + atualiza plataforma dos jogos ligados)
+        // ✅ RENOMEAR EMULADOR (atualiza plataforma dos jogos ligados)
         [RelayCommand]
         private async Task RenameEmulator(Emulator? item)
         {
@@ -136,26 +134,79 @@ namespace Gameoteca.ViewModels
 
             target.Name = newName;
 
-            // Atualiza texto da plataforma nos jogos que usam esse emulador
             foreach (var g in Games.Where(g => g.EmulatorId == target.Id))
                 g.Plataform = newName;
 
             await PersistAsync();
         }
 
+        // ✅ JOGAR (agora suporta Steam/Epic via .url / .lnk)
         [RelayCommand]
         private void PlaySelected(GameItem? item)
         {
             var target = item ?? SelectedGame;
             if (target == null) return;
 
+            // Se for atalho/URI, abre via Shell (Steam/Epic/Browser)
+            if (IsShortcutLike(target))
+            {
+                TryLaunchShortcut(target);
+                return;
+            }
+
+            // Emulador (ROM)
             if (target.EmulatorId != null)
             {
                 var emu = Emulators.FirstOrDefault(e => e.Id == target.EmulatorId);
                 if (emu != null) { _launcher.Launch(emu, target); return; }
             }
 
+            // Jogo PC (exe normal)
             _launcher.LaunchGameOnly(target);
+        }
+
+        private static bool IsShortcutLike(GameItem g)
+        {
+            if (g.IsShortcut) return true;
+
+            var fp = (g.FilePath ?? "").Trim();
+            if (fp.StartsWith("steam://", StringComparison.OrdinalIgnoreCase)) return true;
+            if (fp.StartsWith("com.epicgames.launcher://", StringComparison.OrdinalIgnoreCase)) return true;
+
+            var ext = Path.GetExtension(fp).ToLowerInvariant();
+            return ext == ".url" || ext == ".lnk";
+        }
+
+        private static void TryLaunchShortcut(GameItem g)
+        {
+            try
+            {
+                // Preferência: LaunchUri (quando veio de .url)
+                var target = (g.LaunchUri ?? "").Trim();
+                if (!string.IsNullOrWhiteSpace(target))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = target,
+                        UseShellExecute = true
+                    });
+                    return;
+                }
+
+                // Se não tem LaunchUri, tenta abrir o próprio arquivo (.url/.lnk) ou o FilePath direto
+                var fp = (g.FilePath ?? "").Trim();
+                if (string.IsNullOrWhiteSpace(fp)) return;
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = fp,
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                // se quiser, aqui você pode mostrar um MessageBox via DialogService futuramente
+            }
         }
 
         [RelayCommand]
@@ -185,20 +236,108 @@ namespace Gameoteca.ViewModels
 
         [RelayCommand] private async Task Save() => await PersistAsync();
 
+        // ✅ ADD GAME (agora aceita .exe / .url / .lnk)
         [RelayCommand]
         private async Task AddGame()
         {
-            var f = _dialogs.PickFile("Add Jogo", "*.exe|*.exe");
-            if (f != null)
+            // filtro Win32 (OpenFileDialog)
+            var filter =
+                "Jogos / Atalhos (*.exe;*.url;*.lnk)|*.exe;*.url;*.lnk|" +
+                "Executável (*.exe)|*.exe|" +
+                "Atalho da Internet (*.url)|*.url|" +
+                "Atalho do Windows (*.lnk)|*.lnk";
+
+            var f = _dialogs.PickFile("Add Jogo", filter);
+            if (string.IsNullOrWhiteSpace(f)) return;
+
+            var ext = Path.GetExtension(f).ToLowerInvariant();
+
+            // Atalho Internet (.url)
+            if (ext == ".url")
+            {
+                var uri = TryReadInternetShortcutUrl(f);
+
+                var platform = DetectPlatformFromUri(uri);
+                Games.Add(new GameItem
+                {
+                    Title = Path.GetFileNameWithoutExtension(f),
+                    FilePath = f,
+                    Plataform = platform,
+                    IsShortcut = true,
+                    LaunchUri = uri
+                });
+
+                await PersistAsync();
+                return;
+            }
+
+            // Atalho Windows (.lnk) -> abre via shell
+            if (ext == ".lnk")
             {
                 Games.Add(new GameItem
                 {
                     Title = Path.GetFileNameWithoutExtension(f),
                     FilePath = f,
-                    Plataform = "PC"
+                    Plataform = "Atalho",
+                    IsShortcut = true,
+                    LaunchUri = null
                 });
+
                 await PersistAsync();
+                return;
             }
+
+            // Executável normal
+            Games.Add(new GameItem
+            {
+                Title = Path.GetFileNameWithoutExtension(f),
+                FilePath = f,
+                Plataform = "PC",
+                IsShortcut = false,
+                LaunchUri = null
+            });
+
+            await PersistAsync();
+        }
+
+        private static string? TryReadInternetShortcutUrl(string filePath)
+        {
+            try
+            {
+                // Formato típico:
+                // [InternetShortcut]
+                // URL=steam://rungameid/123...
+                foreach (var line in File.ReadAllLines(filePath))
+                {
+                    var l = (line ?? "").Trim();
+                    if (l.StartsWith("URL=", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var url = l.Substring(4).Trim();
+                        return string.IsNullOrWhiteSpace(url) ? null : url;
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private static string DetectPlatformFromUri(string? uri)
+        {
+            var u = (uri ?? "").Trim();
+
+            if (u.StartsWith("steam://", StringComparison.OrdinalIgnoreCase))
+                return "Steam";
+
+            if (u.StartsWith("com.epicgames.launcher://", StringComparison.OrdinalIgnoreCase))
+                return "Epic";
+
+            if (u.Contains("epicgames.com", StringComparison.OrdinalIgnoreCase))
+                return "Epic";
+
+            if (!string.IsNullOrWhiteSpace(u))
+                return "Atalho";
+
+            return "Atalho";
         }
 
         [RelayCommand]
