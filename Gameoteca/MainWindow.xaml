@@ -274,6 +274,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
         <Style TargetType="ComboBoxItem">
             <Setter Property="Foreground" Value="#D6C8FF"/>
             <Setter Property="Background" Value="Transparent"/>
@@ -330,22 +331,25 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="Gameoteca" FontSize="26" FontWeight="SemiBold" Foreground="#FFFFFF"/>
                     <TextBlock Text="Biblioteca gamer" FontSize="12" Foreground="#D6C8FF" Margin="0,3,0,0"/>
                 </StackPanel>
+
                 <Border Grid.Column="2" HorizontalAlignment="Right" CornerRadius="12" Padding="12,10" BorderBrush="#4B2A86" BorderThickness="1" Background="#0F0521">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Buscar:" Foreground="#D6C8FF" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <TextBox Width="300" Background="Transparent" BorderThickness="0" Margin="0" Padding="0"/>
                     </StackPanel>
                 </Border>
-                <Button Grid.Column="3" Content="Salvar" Command="{Binding SaveCommand}" Style="{StaticResource PrimaryButton}" Margin="12,0,0,0" MinWidth="130"/>
             </Grid>
         </Border>
 
         <Border Grid.Row="1" Margin="14,0,14,14">
             <TabControl>
+
+                <!-- Jogos -->
                 <TabItem Header="Jogos">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -363,7 +367,7 @@
                         </Border>
 
                         <ListBox Grid.Row="1"
-                                 ItemsSource="{Binding Games}" 
+                                 ItemsSource="{Binding Games}"
                                  SelectedItem="{Binding SelectedGame}"
                                  Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -395,7 +399,7 @@
                                                     <TextBlock Text="🎮" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#4B2A86" Opacity="0.5"/>
                                                     <Image Source="{Binding ImagePath}" Stretch="UniformToFill"/>
 
-                                                    <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="8" 
+                                                    <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="8"
                                                             Background="#CC000000" CornerRadius="4" Padding="6,2">
                                                         <TextBlock Text="{Binding Plataform}" Foreground="#C084FC" FontSize="11" FontWeight="Bold"/>
                                                     </Border>
@@ -438,15 +442,6 @@
                                             <ContextMenu>
                                                 <MenuItem Header="Jogar" FontWeight="Bold" Command="{Binding Source={StaticResource Proxy}, Path=Data.PlaySelectedCommand}" CommandParameter="{Binding}"/>
                                                 <Separator/>
-                                                <MenuItem Header="Associar Emulador" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.Emulators}">
-                                                    <MenuItem.ItemContainerStyle>
-                                                        <Style TargetType="MenuItem">
-                                                            <Setter Property="Header" Value="{Binding Name}"/>
-                                                            <Setter Property="Command" Value="{Binding Source={StaticResource Proxy}, Path=Data.SetGameEmulatorCommand}"/>
-                                                            <Setter Property="CommandParameter" Value="{Binding}"/>
-                                                        </Style>
-                                                    </MenuItem.ItemContainerStyle>
-                                                </MenuItem>
                                                 <MenuItem Header="Definir como PC" Command="{Binding Source={StaticResource Proxy}, Path=Data.ClearGameEmulatorCommand}" />
                                                 <Separator/>
                                                 <MenuItem Header="Alterar Capa" Command="{Binding Source={StaticResource Proxy}, Path=Data.ChangeGameImageCommand}" CommandParameter="{Binding}"/>
@@ -461,6 +456,7 @@
                     </Grid>
                 </TabItem>
 
+                <!-- Emuladores -->
                 <TabItem Header="Emuladores">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -514,6 +510,7 @@
                     </Grid>
                 </TabItem>
 
+                <!-- Pastas (Scan) -->
                 <TabItem Header="Pastas (Scan)">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -525,11 +522,17 @@
                             <StackPanel Orientation="Horizontal">
                                 <Button Content="Adicionar" Command="{Binding AddMappingCommand}" Margin="0,0,10,0"/>
                                 <Button Content="Scan" Command="{Binding ScanSelectedMappingCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0"/>
-                                <Button Content="Remover" Command="{Binding RemoveSelectedMappingCommand}" Style="{StaticResource DangerButton}"/>
                             </StackPanel>
                         </Border>
 
-                        <DataGrid Grid.Row="1" ItemsSource="{Binding Mappings}" SelectedItem="{Binding SelectedMapping}" Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
+                        <!-- ✅ AQUI está a correção principal: PreviewMouseRightButtonDown -->
+                        <DataGrid x:Name="MappingsGrid"
+                                  Grid.Row="1"
+                                  ItemsSource="{Binding Mappings}"
+                                  SelectedItem="{Binding SelectedMapping}"
+                                  Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
+                                  PreviewMouseRightButtonDown="MappingsGrid_PreviewMouseRightButtonDown">
+
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                     <Setter Property="ContextMenu">
@@ -537,7 +540,8 @@
                                             <ContextMenu>
                                                 <MenuItem Header="Fazer Scan Agora" Command="{Binding Source={StaticResource Proxy}, Path=Data.ScanSelectedMappingCommand}" CommandParameter="{Binding}"/>
                                                 <MenuItem Header="Alterar Pasta" Command="{Binding Source={StaticResource Proxy}, Path=Data.BrowseMappingFolderCommand}" CommandParameter="{Binding}"/>
-                                                <MenuItem Header="Excluir" Command="{Binding Source={StaticResource Proxy}, Path=Data.RemoveMappingCommand}" CommandParameter="{Binding}" Foreground="#FF7AB6"/>
+                                                <Separator/>
+                                                <MenuItem Header="Excluir Caminho" Command="{Binding Source={StaticResource Proxy}, Path=Data.RemoveMappingCommand}" CommandParameter="{Binding}" Foreground="#FF7AB6"/>
                                             </ContextMenu>
                                         </Setter.Value>
                                     </Setter>
@@ -560,8 +564,11 @@
                                                           SelectedValuePath="Id"
                                                           SelectedValue="{Binding EmulatorId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                           DisplayMemberPath="Name"
-                                                          IsHitTestVisible="False" Focusable="False" 
-                                                          BorderThickness="0" Background="Transparent" Foreground="#D6C8FF"
+                                                          IsHitTestVisible="False"
+                                                          Focusable="False"
+                                                          BorderThickness="0"
+                                                          Background="Transparent"
+                                                          Foreground="#D6C8FF"
                                                           VerticalAlignment="Center">
                                                     <ComboBox.Template>
                                                         <ControlTemplate TargetType="ComboBox">
@@ -577,9 +584,12 @@
                                     <DataGridTemplateColumn.CellEditingTemplate>
                                         <DataTemplate>
                                             <ComboBox ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.Emulators}"
-                                                      DisplayMemberPath="Name" SelectedValuePath="Id"
+                                                      DisplayMemberPath="Name"
+                                                      SelectedValuePath="Id"
                                                       SelectedValue="{Binding EmulatorId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                      Background="#1A0B34" Foreground="White" IsDropDownOpen="True"/>
+                                                      Background="#1A0B34"
+                                                      Foreground="White"
+                                                      IsDropDownOpen="True"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellEditingTemplate>
                                 </DataGridTemplateColumn>
@@ -613,7 +623,11 @@
                                                         CommandParameter="{Binding}"/>
                                                 <ComboBox ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.AvailableExtensions}"
                                                           Text="{Binding ExtensionsText, UpdateSourceTrigger=PropertyChanged}"
-                                                          IsEditable="True" Background="#1A0B34" Foreground="White" BorderThickness="0" IsDropDownOpen="True"/>
+                                                          IsEditable="True"
+                                                          Background="#1A0B34"
+                                                          Foreground="White"
+                                                          BorderThickness="0"
+                                                          IsDropDownOpen="True"/>
                                             </DockPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellEditingTemplate>
@@ -622,6 +636,7 @@
                         </DataGrid>
                     </Grid>
                 </TabItem>
+
             </TabControl>
         </Border>
     </Grid>

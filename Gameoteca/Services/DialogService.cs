@@ -1,6 +1,6 @@
 ﻿using Ookii.Dialogs.Wpf;
 using Microsoft.Win32;
-using Gameoteca.Views; // Importante para achar a InputWindow
+using Gameoteca.Views;
 
 namespace Gameoteca.Services
 {
@@ -36,19 +36,17 @@ namespace Gameoteca.Services
             return dlg.ShowDialog() == true ? dlg.SelectedPath : null;
         }
 
-        // Abre a janelinha roxa de input
+        // Mantém compatibilidade com chamadas antigas.
         public string? AskForText(string title, string currentValue)
+            => AskForText(title, prompt: "", initialValue: currentValue);
+
+        // Overload: permite passar um valor inicial (e opcionalmente um prompt futuro)
+        public string? AskForText(string title, string prompt, string? initialValue = null)
         {
-            // Certifique-se de que criou o InputWindow.xaml conforme o passo anterior
-            var window = new InputWindow(title, currentValue);
-
-            bool? result = window.ShowDialog();
-
-            if (result == true)
-            {
-                return window.ResultText;
-            }
-            return null;
+            // (prompt está aqui só pra facilitar evoluir depois; a InputWindow atual não usa)
+            var window = new InputWindow(title, initialValue ?? "");
+            var result = window.ShowDialog();
+            return result == true ? window.ResultText : null;
         }
     }
 }
