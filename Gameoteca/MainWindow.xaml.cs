@@ -43,5 +43,10 @@ namespace Gameoteca
             }
             return null;
         }
+
+        private void MappingsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
     }
 }

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Gameoteca.Models;
 using Gameoteca.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -22,21 +23,72 @@ namespace Gameoteca.ViewModels
         public ObservableCollection<GameItem> Games { get; } = new();
         public ObservableCollection<FolderMapping> Mappings { get; } = new();
 
+        // Adicionado o .lnk correto e .url na lista de sugestões!
         public ObservableCollection<string> AvailableExtensions { get; } = new()
         {
-            ".zip", ".7z", ".iso", ".bin", ".cue", ".smc", ".sfc", ".n64", ".z64", ".gba", ".nds", ".exe"
+            ".zip", ".7z", ".iso", ".bin", ".cue", ".smc", ".sfc", ".n64", ".z64", ".gba", ".nds", ".exe", ".lnk", ".url"
         };
 
         [ObservableProperty] private GameItem? _selectedGame;
         [ObservableProperty] private Emulator? _selectedEmulator;
         [ObservableProperty] private FolderMapping? _selectedMapping;
 
+        // ✅ UPGRADE: Construtor para observar os emuladores
+        public MainViewModel()
+        {
+            Emulators.CollectionChanged += (s, e) => OnPropertyChanged(nameof(AvailablePlatforms));
+        }
+
+        // ✅ UPGRADE: Lista Virtual que junta o "PC" com os Emuladores do usuário
+        public IEnumerable<PlatformOption> AvailablePlatforms
+        {
+            get
+            {
+                yield return new PlatformOption { Id = null, Name = "PC" };
+                foreach (var emu in Emulators)
+                {
+                    yield return new PlatformOption { Id = emu.Id, Name = emu.Name };
+                }
+            }
+        }
+
         public async Task InitAsync()
         {
             var state = await _storage.LoadAsync();
             Emulators.Clear(); foreach (var e in state.Emulators) Emulators.Add(e);
             Games.Clear(); foreach (var g in state.Games) Games.Add(g);
-            Mappings.Clear(); foreach (var m in state.Mappings) Mappings.Add(m);
+            Mappings.Clear();
+
+            // Reassocia o evento a cada pasta carregada do save
+            foreach (var m in state.Mappings)
+            {
+                m.PropertyChanged += Mapping_PropertyChanged;
+                Mappings.Add(m);
+            }
+        }
+
+        // ✅ UPGRADE DE INTELIGÊNCIA: Se trocar o emulador na tabela, ele auto-preenche e salva!
+        private void Mapping_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(FolderMapping.EmulatorId))
+            {
+                if (sender is FolderMapping map)
+                {
+                    if (map.EmulatorId == null)
+                    {
+                        // Mudou para PC: Preenche NOME e EXTENSÕES nativamente
+                        map.Plataform = "PC";
+                        map.ExtensionsText = ".exe; .lnk; .url";
+                    }
+                    else
+                    {
+                        // Mudou para Emulador: Puxa o nome real dele
+                        var emu = Emulators.FirstOrDefault(x => x.Id == map.EmulatorId);
+                        map.Plataform = emu?.Name ?? "Desconhecido";
+                    }
+                    _ = PersistAsync(); // Salva em background
+                }
+            }
         }
 
         private async Task PersistAsync() => await _storage.SaveAsync(new LibraryState
@@ -46,7 +98,6 @@ namespace Gameoteca.ViewModels
             Mappings = Mappings.ToList()
         });
 
-        // --- ASSOCIAÇÃO (mantive o "Definir como PC") ---
         [RelayCommand]
         private async Task ClearGameEmulator(GameItem? item)
         {
@@ -58,7 +109,6 @@ namespace Gameoteca.ViewModels
             await PersistAsync();
         }
 
-        // --- EXTENSÕES ---
         [RelayCommand]
         private async Task AddCustomExtension(FolderMapping map)
         {
@@ -73,7 +123,6 @@ namespace Gameoteca.ViewModels
             }
         }
 
-        // --- BOTÃO DIREITO E AÇÕES ---
         [RelayCommand]
         private async Task RemoveGame(GameItem? item)
         {
@@ -94,11 +143,14 @@ namespace Gameoteca.ViewModels
         private async Task RemoveMapping(FolderMapping? item)
         {
             var t = item ?? SelectedMapping;
-            if (t != null) Mappings.Remove(t);
+            if (t != null)
+            {
+                t.PropertyChanged -= Mapping_PropertyChanged;
+                Mappings.Remove(t);
+            }
             await PersistAsync();
         }
 
-        // ✅ RENOMEAR JOGO
         [RelayCommand]
         private async Task RenameGame(GameItem? item)
         {
@@ -117,7 +169,6 @@ namespace Gameoteca.ViewModels
             await PersistAsync();
         }
 
-        // ✅ RENOMEAR EMULADOR (atualiza plataforma dos jogos ligados)
         [RelayCommand]
         private async Task RenameEmulator(Emulator? item)
         {
@@ -134,34 +185,35 @@ namespace Gameoteca.ViewModels
 
             target.Name = newName;
 
+            // Atualiza os jogos associados
             foreach (var g in Games.Where(g => g.EmulatorId == target.Id))
                 g.Plataform = newName;
+
+            // Atualiza as pastas associadas
+            foreach (var m in Mappings.Where(m => m.EmulatorId == target.Id))
+                m.Plataform = newName;
 
             await PersistAsync();
         }
 
-        // ✅ JOGAR (agora suporta Steam/Epic via .url / .lnk)
         [RelayCommand]
         private void PlaySelected(GameItem? item)
         {
             var target = item ?? SelectedGame;
             if (target == null) return;
 
-            // Se for atalho/URI, abre via Shell (Steam/Epic/Browser)
             if (IsShortcutLike(target))
             {
                 TryLaunchShortcut(target);
                 return;
             }
 
-            // Emulador (ROM)
             if (target.EmulatorId != null)
             {
                 var emu = Emulators.FirstOrDefault(e => e.Id == target.EmulatorId);
                 if (emu != null) { _launcher.Launch(emu, target); return; }
             }
 
-            // Jogo PC (exe normal)
             _launcher.LaunchGameOnly(target);
         }
 
@@ -181,32 +233,19 @@ namespace Gameoteca.ViewModels
         {
             try
             {
-                // Preferência: LaunchUri (quando veio de .url)
                 var target = (g.LaunchUri ?? "").Trim();
                 if (!string.IsNullOrWhiteSpace(target))
                 {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = target,
-                        UseShellExecute = true
-                    });
+                    Process.Start(new ProcessStartInfo { FileName = target, UseShellExecute = true });
                     return;
                 }
 
-                // Se não tem LaunchUri, tenta abrir o próprio arquivo (.url/.lnk) ou o FilePath direto
                 var fp = (g.FilePath ?? "").Trim();
                 if (string.IsNullOrWhiteSpace(fp)) return;
 
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = fp,
-                    UseShellExecute = true
-                });
+                Process.Start(new ProcessStartInfo { FileName = fp, UseShellExecute = true });
             }
-            catch
-            {
-                // se quiser, aqui você pode mostrar um MessageBox via DialogService futuramente
-            }
+            catch { }
         }
 
         [RelayCommand]
@@ -236,11 +275,9 @@ namespace Gameoteca.ViewModels
 
         [RelayCommand] private async Task Save() => await PersistAsync();
 
-        // ✅ ADD GAME (agora aceita .exe / .url / .lnk)
         [RelayCommand]
         private async Task AddGame()
         {
-            // filtro Win32 (OpenFileDialog)
             var filter =
                 "Jogos / Atalhos (*.exe;*.url;*.lnk)|*.exe;*.url;*.lnk|" +
                 "Executável (*.exe)|*.exe|" +
@@ -252,51 +289,23 @@ namespace Gameoteca.ViewModels
 
             var ext = Path.GetExtension(f).ToLowerInvariant();
 
-            // Atalho Internet (.url)
             if (ext == ".url")
             {
                 var uri = TryReadInternetShortcutUrl(f);
-
                 var platform = DetectPlatformFromUri(uri);
-                Games.Add(new GameItem
-                {
-                    Title = Path.GetFileNameWithoutExtension(f),
-                    FilePath = f,
-                    Plataform = platform,
-                    IsShortcut = true,
-                    LaunchUri = uri
-                });
-
+                Games.Add(new GameItem { Title = Path.GetFileNameWithoutExtension(f), FilePath = f, Plataform = platform, IsShortcut = true, LaunchUri = uri });
                 await PersistAsync();
                 return;
             }
 
-            // Atalho Windows (.lnk) -> abre via shell
             if (ext == ".lnk")
             {
-                Games.Add(new GameItem
-                {
-                    Title = Path.GetFileNameWithoutExtension(f),
-                    FilePath = f,
-                    Plataform = "Atalho",
-                    IsShortcut = true,
-                    LaunchUri = null
-                });
-
+                Games.Add(new GameItem { Title = Path.GetFileNameWithoutExtension(f), FilePath = f, Plataform = "Atalho", IsShortcut = true, LaunchUri = null });
                 await PersistAsync();
                 return;
             }
 
-            // Executável normal
-            Games.Add(new GameItem
-            {
-                Title = Path.GetFileNameWithoutExtension(f),
-                FilePath = f,
-                Plataform = "PC",
-                IsShortcut = false,
-                LaunchUri = null
-            });
-
+            Games.Add(new GameItem { Title = Path.GetFileNameWithoutExtension(f), FilePath = f, Plataform = "PC", IsShortcut = false, LaunchUri = null });
             await PersistAsync();
         }
 
@@ -304,9 +313,6 @@ namespace Gameoteca.ViewModels
         {
             try
             {
-                // Formato típico:
-                // [InternetShortcut]
-                // URL=steam://rungameid/123...
                 foreach (var line in File.ReadAllLines(filePath))
                 {
                     var l = (line ?? "").Trim();
@@ -324,19 +330,10 @@ namespace Gameoteca.ViewModels
         private static string DetectPlatformFromUri(string? uri)
         {
             var u = (uri ?? "").Trim();
-
-            if (u.StartsWith("steam://", StringComparison.OrdinalIgnoreCase))
-                return "Steam";
-
-            if (u.StartsWith("com.epicgames.launcher://", StringComparison.OrdinalIgnoreCase))
-                return "Epic";
-
-            if (u.Contains("epicgames.com", StringComparison.OrdinalIgnoreCase))
-                return "Epic";
-
-            if (!string.IsNullOrWhiteSpace(u))
-                return "Atalho";
-
+            if (u.StartsWith("steam://", StringComparison.OrdinalIgnoreCase)) return "Steam";
+            if (u.StartsWith("com.epicgames.launcher://", StringComparison.OrdinalIgnoreCase)) return "Epic";
+            if (u.Contains("epicgames.com", StringComparison.OrdinalIgnoreCase)) return "Epic";
+            if (!string.IsNullOrWhiteSpace(u)) return "Atalho";
             return "Atalho";
         }
 
@@ -346,11 +343,7 @@ namespace Gameoteca.ViewModels
             var f = _dialogs.PickFile("Add Emulador", "*.exe|*.exe");
             if (f != null)
             {
-                Emulators.Add(new Emulator
-                {
-                    Name = Path.GetFileNameWithoutExtension(f),
-                    ExecutablePath = f
-                });
+                Emulators.Add(new Emulator { Name = Path.GetFileNameWithoutExtension(f), ExecutablePath = f });
                 await PersistAsync();
             }
         }
@@ -361,11 +354,15 @@ namespace Gameoteca.ViewModels
             var f = _dialogs.PickFolder("Pasta ROMs");
             if (f != null)
             {
-                Mappings.Add(new FolderMapping
+                // ✅ UPGRADE: Por padrão, a pasta nasce como PC e com as extensões prontas!
+                var newMap = new FolderMapping
                 {
                     FolderPath = f,
-                    Plataform = "PC"
-                });
+                    Plataform = "PC",
+                    ExtensionsText = ".exe; .lnk; .url"
+                };
+                newMap.PropertyChanged += Mapping_PropertyChanged;
+                Mappings.Add(newMap);
                 await PersistAsync();
             }
         }
@@ -381,5 +378,12 @@ namespace Gameoteca.ViewModels
                 await PersistAsync();
             }
         }
+    }
+
+    // ✅ Classe Auxiliar para gerar a lista na Tabela
+    public class PlatformOption
+    {
+        public Guid? Id { get; set; }
+        public string Name { get; set; } = "";
     }
 }
