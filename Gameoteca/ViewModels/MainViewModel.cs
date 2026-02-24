@@ -23,7 +23,6 @@ namespace Gameoteca.ViewModels
         public ObservableCollection<GameItem> Games { get; } = new();
         public ObservableCollection<FolderMapping> Mappings { get; } = new();
 
-        // Adicionado o .lnk correto e .url na lista de sugestões!
         public ObservableCollection<string> AvailableExtensions { get; } = new()
         {
             ".zip", ".7z", ".iso", ".bin", ".cue", ".smc", ".sfc", ".n64", ".z64", ".gba", ".nds", ".exe", ".lnk", ".url"
@@ -33,13 +32,11 @@ namespace Gameoteca.ViewModels
         [ObservableProperty] private Emulator? _selectedEmulator;
         [ObservableProperty] private FolderMapping? _selectedMapping;
 
-        // ✅ UPGRADE: Construtor para observar os emuladores
         public MainViewModel()
         {
             Emulators.CollectionChanged += (s, e) => OnPropertyChanged(nameof(AvailablePlatforms));
         }
 
-        // ✅ UPGRADE: Lista Virtual que junta o "PC" com os Emuladores do usuário
         public IEnumerable<PlatformOption> AvailablePlatforms
         {
             get
@@ -59,7 +56,6 @@ namespace Gameoteca.ViewModels
             Games.Clear(); foreach (var g in state.Games) Games.Add(g);
             Mappings.Clear();
 
-            // Reassocia o evento a cada pasta carregada do save
             foreach (var m in state.Mappings)
             {
                 m.PropertyChanged += Mapping_PropertyChanged;
@@ -67,7 +63,6 @@ namespace Gameoteca.ViewModels
             }
         }
 
-        // ✅ UPGRADE DE INTELIGÊNCIA: Se trocar o emulador na tabela, ele auto-preenche e salva!
         private void Mapping_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(FolderMapping.EmulatorId))
@@ -76,17 +71,15 @@ namespace Gameoteca.ViewModels
                 {
                     if (map.EmulatorId == null)
                     {
-                        // Mudou para PC: Preenche NOME e EXTENSÕES nativamente
                         map.Plataform = "PC";
                         map.ExtensionsText = ".exe; .lnk; .url";
                     }
                     else
                     {
-                        // Mudou para Emulador: Puxa o nome real dele
                         var emu = Emulators.FirstOrDefault(x => x.Id == map.EmulatorId);
                         map.Plataform = emu?.Name ?? "Desconhecido";
                     }
-                    _ = PersistAsync(); // Salva em background
+                    _ = PersistAsync();
                 }
             }
         }
@@ -185,11 +178,9 @@ namespace Gameoteca.ViewModels
 
             target.Name = newName;
 
-            // Atualiza os jogos associados
             foreach (var g in Games.Where(g => g.EmulatorId == target.Id))
                 g.Plataform = newName;
 
-            // Atualiza as pastas associadas
             foreach (var m in Mappings.Where(m => m.EmulatorId == target.Id))
                 m.Plataform = newName;
 
@@ -354,7 +345,6 @@ namespace Gameoteca.ViewModels
             var f = _dialogs.PickFolder("Pasta ROMs");
             if (f != null)
             {
-                // ✅ UPGRADE: Por padrão, a pasta nasce como PC e com as extensões prontas!
                 var newMap = new FolderMapping
                 {
                     FolderPath = f,
@@ -378,9 +368,41 @@ namespace Gameoteca.ViewModels
                 await PersistAsync();
             }
         }
+
+        // Comando Reset (mantido da versão anterior)
+        [RelayCommand]
+        private async Task ResetAllSettings()
+        {
+            var confirm = _dialogs.AskConfirmation(
+                "Resetar Configurações",
+                "Tem certeza que deseja apagar TODOS os jogos, emuladores e configurações?\n\nEsta ação não pode ser desfeita!"
+            );
+
+            if (!confirm) return;
+
+            try
+            {
+                Games.Clear();
+
+                foreach (var m in Mappings)
+                {
+                    m.PropertyChanged -= Mapping_PropertyChanged;
+                }
+                Mappings.Clear();
+
+                Emulators.Clear();
+
+                await _storage.ResetAsync();
+
+                _dialogs.ShowMessage("Configurações resetadas com sucesso!", "Reset Concluído");
+            }
+            catch (Exception ex)
+            {
+                _dialogs.ShowError($"Erro ao resetar configurações: {ex.Message}", "Erro");
+            }
+        }
     }
 
-    // ✅ Classe Auxiliar para gerar a lista na Tabela
     public class PlatformOption
     {
         public Guid? Id { get; set; }

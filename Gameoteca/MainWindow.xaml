@@ -316,6 +316,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- HEADER COM APENAS BOTÃO RESET -->
         <Border Margin="14,14,14,10" CornerRadius="16" Padding="16,14" BorderThickness="1" BorderBrush="#4B2A86">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -335,6 +336,15 @@
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="Gameoteca" FontSize="26" FontWeight="SemiBold" Foreground="#FFFFFF"/>
                     <TextBlock Text="Biblioteca gamer" FontSize="12" Foreground="#D6C8FF" Margin="0,3,0,0"/>
+                </StackPanel>
+
+                <!-- APENAS BOTÃO RESET -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Resetar Configurações" 
+                            Command="{Binding ResetAllSettingsCommand}"
+                            Style="{StaticResource DangerButton}"
+                            Padding="16,8"
+                            MinWidth="180"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -434,15 +444,7 @@
                                             <ContextMenu>
                                                 <MenuItem Header="Jogar" FontWeight="Bold" Command="{Binding Source={StaticResource Proxy}, Path=Data.PlaySelectedCommand}" CommandParameter="{Binding}"/>
                                                 <Separator/>
-                                                <MenuItem Header="Associar Emulador" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.AvailablePlatforms}">
-                                                    <MenuItem.ItemContainerStyle>
-                                                        <Style TargetType="MenuItem">
-                                                            <Setter Property="Header" Value="{Binding Name}"/>
-                                                            <Setter Property="Command" Value="{Binding Source={StaticResource Proxy}, Path=Data.SetGameEmulatorCommand}"/>
-                                                            <Setter Property="CommandParameter" Value="{Binding}"/>
-                                                        </Style>
-                                                    </MenuItem.ItemContainerStyle>
-                                                </MenuItem>
+                                                
                                                 <MenuItem Header="Definir como PC" Command="{Binding Source={StaticResource Proxy}, Path=Data.ClearGameEmulatorCommand}" />
                                                 <Separator/>
                                                 <MenuItem Header="Alterar Capa" Command="{Binding Source={StaticResource Proxy}, Path=Data.ChangeGameImageCommand}" CommandParameter="{Binding}"/>
@@ -520,7 +522,6 @@
                         <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12" Background="#12002A">
                             <StackPanel Orientation="Horizontal">
                                 <Button Content="Adicionar" Command="{Binding AddMappingCommand}" Margin="0,0,10,0"/>
-                                <Button Content="Scan" Command="{Binding ScanSelectedMappingCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0"/>
                             </StackPanel>
                         </Border>
 

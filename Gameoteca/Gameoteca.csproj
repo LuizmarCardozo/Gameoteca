@@ -25,6 +25,7 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+		<PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
 	</ItemGroup>
 
 </Project>

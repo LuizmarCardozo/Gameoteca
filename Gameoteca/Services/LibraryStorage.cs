@@ -43,5 +43,20 @@ namespace Gameoteca.Services
             await File.WriteAllTextAsync(_filePath, json);
         }
 
+        // ✅ NOVO: Método para resetar (apagar o arquivo)
+        public async Task ResetAsync()
+        {
+            if (File.Exists(_filePath))
+            {
+                // Opcional: criar um backup antes de apagar
+                // string backupPath = _filePath + ".backup";
+                // File.Copy(_filePath, backupPath, true);
+
+                File.Delete(_filePath);
+            }
+
+            // Pequeno delay para garantir que o arquivo foi deletado
+            await Task.Delay(100);
+        }
     }
 }
