@@ -18,6 +18,7 @@ namespace Gameoteca.ViewModels
         private readonly LaunchService _launcher = new();
         private readonly DialogService _dialogs = new();
         private readonly ScanService _scanner = new();
+        private readonly JoystickService _joystickService;
 
         public ObservableCollection<Emulator> Emulators { get; } = new();
         public ObservableCollection<GameItem> Games { get; } = new();
@@ -32,9 +33,35 @@ namespace Gameoteca.ViewModels
         [ObservableProperty] private Emulator? _selectedEmulator;
         [ObservableProperty] private FolderMapping? _selectedMapping;
 
-        public MainViewModel()
+        // Novo: número de colunas da grade (valor fixo por enquanto)
+        private const int GridColumns = 5;
+
+        public MainViewModel(JoystickService joystickService)
         {
+            _joystickService = joystickService;
+
+            // Assinar eventos do joystick
+            _joystickService.ButtonPressed += OnJoystickButtonPressed;
+            _joystickService.AxisChanged += OnJoystickAxisChanged;
+
             Emulators.CollectionChanged += (s, e) => OnPropertyChanged(nameof(AvailablePlatforms));
+
+            // Carregar dados
+            _ = InitAsync();
+        }
+
+        private async Task InitAsync()
+        {
+            var state = await _storage.LoadAsync();
+            Emulators.Clear(); foreach (var e in state.Emulators) Emulators.Add(e);
+            Games.Clear(); foreach (var g in state.Games) Games.Add(g);
+            Mappings.Clear();
+
+            foreach (var m in state.Mappings)
+            {
+                m.PropertyChanged += Mapping_PropertyChanged;
+                Mappings.Add(m);
+            }
         }
 
         public IEnumerable<PlatformOption> AvailablePlatforms
@@ -49,20 +76,112 @@ namespace Gameoteca.ViewModels
             }
         }
 
-        public async Task InitAsync()
+        // Event handlers do joystick
+        private void OnJoystickButtonPressed(object? sender, int button)
         {
-            var state = await _storage.LoadAsync();
-            Emulators.Clear(); foreach (var e in state.Emulators) Emulators.Add(e);
-            Games.Clear(); foreach (var g in state.Games) Games.Add(g);
-            Mappings.Clear();
-
-            foreach (var m in state.Mappings)
+            // Mapeamento de botões (ajuste conforme seu joystick)
+            switch (button)
             {
-                m.PropertyChanged += Mapping_PropertyChanged;
-                Mappings.Add(m);
+                case 0: // Botão A (geralmente confirma)
+                    PlaySelectedCommand.Execute(null);
+                    break;
+                case 1: // Botão B (geralmente cancela)
+                    // Talvez voltar? Sem função por enquanto.
+                    break;
+                case 2: // Botão X
+                    AddGameCommand.Execute(null);
+                    break;
+                case 3: // Botão Y
+                    // Pode ser usado para abrir configurações futuramente
+                    break;
+                case 4: // Botão LB
+                    // Mudar de aba? Implementar depois.
+                    break;
+                case 5: // Botão RB
+                    // Mudar de aba? Implementar depois.
+                    break;
+                case 6: // Botão Back
+                    // Abrir menu de contexto? Ou reset?
+                    break;
+                case 7: // Botão Start
+                    // Play também, ou algo similar
+                    PlaySelectedCommand.Execute(null);
+                    break;
+                default:
+                    break;
             }
         }
 
+        private void OnJoystickAxisChanged(object? sender, JoystickAxisEventArgs e)
+        {
+            const int deadZone = 3000; // Zona morta para evitar movimentos acidentais
+
+            if (e.Axis == AxisType.X)
+            {
+                if (e.Value < -deadZone)
+                    MoveSelectionLeft();
+                else if (e.Value > deadZone)
+                    MoveSelectionRight();
+            }
+            else if (e.Axis == AxisType.Y)
+            {
+                if (e.Value < -deadZone)
+                    MoveSelectionUp();
+                else if (e.Value > deadZone)
+                    MoveSelectionDown();
+            }
+        }
+
+        // Métodos de navegação
+        private void MoveSelectionUp()
+        {
+            if (Games.Count == 0) return;
+
+            int currentIndex = Games.IndexOf(SelectedGame);
+            if (currentIndex < 0) currentIndex = 0;
+
+            int newIndex = currentIndex - GridColumns;
+            if (newIndex >= 0)
+                SelectedGame = Games[newIndex];
+        }
+
+        private void MoveSelectionDown()
+        {
+            if (Games.Count == 0) return;
+
+            int currentIndex = Games.IndexOf(SelectedGame);
+            if (currentIndex < 0) currentIndex = 0;
+
+            int newIndex = currentIndex + GridColumns;
+            if (newIndex < Games.Count)
+                SelectedGame = Games[newIndex];
+        }
+
+        private void MoveSelectionLeft()
+        {
+            if (Games.Count == 0) return;
+
+            int currentIndex = Games.IndexOf(SelectedGame);
+            if (currentIndex < 0) currentIndex = 0;
+
+            int newIndex = currentIndex - 1;
+            if (newIndex >= 0 && (newIndex / GridColumns) == (currentIndex / GridColumns))
+                SelectedGame = Games[newIndex];
+        }
+
+        private void MoveSelectionRight()
+        {
+            if (Games.Count == 0) return;
+
+            int currentIndex = Games.IndexOf(SelectedGame);
+            if (currentIndex < 0) currentIndex = 0;
+
+            int newIndex = currentIndex + 1;
+            if (newIndex < Games.Count && (newIndex / GridColumns) == (currentIndex / GridColumns))
+                SelectedGame = Games[newIndex];
+        }
+
+        // Métodos existentes (mantidos)
         private void Mapping_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(FolderMapping.EmulatorId))
@@ -369,7 +488,6 @@ namespace Gameoteca.ViewModels
             }
         }
 
-        // Comando Reset (mantido da versão anterior)
         [RelayCommand]
         private async Task ResetAllSettings()
         {

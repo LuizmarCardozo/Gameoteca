@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Windows;
+using Gameoteca.Services;
+using Gameoteca.ViewModels;
 
 namespace Gameoteca
 {
     public partial class App : Application
     {
+        // Propriedade estática para acesso global ao serviço de joystick (opcional)
+        public static JoystickService? JoystickService { get; private set; }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             // Exibe a splash screen (sem fechamento automático)
@@ -24,9 +29,23 @@ namespace Gameoteca
                     // Aguarda o fade terminar completamente
                     await Task.Delay(500);
 
-                    // Cria e exibe a MainWindow UMA ÚNICA VEZ
-                    var mainWindow = new MainWindow();
+                    // Criar o serviço de joystick
+                    JoystickService = new JoystickService();
+
+                    // Criar o ViewModel com o serviço
+                    var viewModel = new MainViewModel(JoystickService);
+
+                    // Criar a janela principal e definir o DataContext
+                    var mainWindow = new MainWindow
+                    {
+                        DataContext = viewModel
+                    };
+
+                    // Exibir a janela
                     mainWindow.Show();
+
+                    // Iniciar o monitoramento do joystick (precisa ser após a janela ser mostrada para o DispatcherTimer funcionar corretamente)
+                    JoystickService.Start();
                 });
             });
         }
