@@ -4,28 +4,28 @@ namespace Gameoteca.Views
 {
     public partial class InputWindow : Window
     {
-        public string ResultText { get; private set; } = string.Empty;
+        // Propriedade para o programa ler o que foi digitado
+        public string InputText => TxtInput.Text;
 
-        public InputWindow(string title, string defaultText)
+        public InputWindow(string title, string defaultText = "")
         {
             InitializeComponent();
             LblTitle.Text = title;
             TxtInput.Text = defaultText;
-            TxtInput.Focus();
+
+            // Já seleciona o texto todo para facilitar na hora de renomear
             TxtInput.SelectAll();
+            TxtInput.Focus();
         }
 
         private void Ok_Click(object sender, RoutedEventArgs e)
         {
-            ResultText = TxtInput.Text;
-            DialogResult = true;
-            Close();
+            DialogResult = true; // Diz pro sistema que deu "OK"
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = false;
-            Close();
+            DialogResult = false; // Diz pro sistema que Cancelou
         }
     }
 }

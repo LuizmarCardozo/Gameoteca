@@ -316,7 +316,6 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- HEADER COM APENAS BOTÃO RESET -->
         <Border Margin="14,14,14,10" CornerRadius="16" Padding="16,14" BorderThickness="1" BorderBrush="#4B2A86">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -338,7 +337,6 @@
                     <TextBlock Text="Biblioteca gamer" FontSize="12" Foreground="#D6C8FF" Margin="0,3,0,0"/>
                 </StackPanel>
 
-                <!-- APENAS BOTÃO RESET -->
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="Resetar Configurações" 
                             Command="{Binding ResetAllSettingsCommand}"
@@ -353,7 +351,7 @@
             <TabControl>
 
                 <TabItem Header="Jogos">
-                    <Grid>
+                    <Grid Background="#0F0521">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -444,7 +442,6 @@
                                             <ContextMenu>
                                                 <MenuItem Header="Jogar" FontWeight="Bold" Command="{Binding Source={StaticResource Proxy}, Path=Data.PlaySelectedCommand}" CommandParameter="{Binding}"/>
                                                 <Separator/>
-                                                
                                                 <MenuItem Header="Definir como PC" Command="{Binding Source={StaticResource Proxy}, Path=Data.ClearGameEmulatorCommand}" />
                                                 <Separator/>
                                                 <MenuItem Header="Alterar Capa" Command="{Binding Source={StaticResource Proxy}, Path=Data.ChangeGameImageCommand}" CommandParameter="{Binding}"/>
@@ -460,7 +457,7 @@
                 </TabItem>
 
                 <TabItem Header="Emuladores">
-                    <Grid>
+                    <Grid Background="#0F0521">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -513,7 +510,7 @@
                 </TabItem>
 
                 <TabItem Header="Pastas (Scan)">
-                    <Grid>
+                    <Grid Background="#0F0521">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -569,7 +566,6 @@
                                                           Background="Transparent"
                                                           Foreground="#D6C8FF"
                                                           VerticalAlignment="Center">
-
                                                     <ComboBox.Template>
                                                         <ControlTemplate TargetType="ComboBox">
                                                             <TextBlock Text="{Binding SelectedItem.Name, RelativeSource={RelativeSource TemplatedParent}}" VerticalAlignment="Center"/>
@@ -612,6 +608,7 @@
                                             </DockPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
+
                                     <DataGridTemplateColumn.CellEditingTemplate>
                                         <DataTemplate>
                                             <DockPanel LastChildFill="True" Background="#1A0B34">
