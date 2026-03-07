@@ -1,0 +1,66 @@
+﻿<Window x:Class="Gameoteca.Views.ControllerMappingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Mapeamento de Controle" Height="430" Width="450"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
+
+    <Border Background="#1A0B34" BorderBrush="#4B2A86" BorderThickness="1" CornerRadius="16" Padding="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="🎮 Mapeamento de Botões" Foreground="#FFFFFF" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+            <TextBlock x:Name="TxtStatus" Text="Clique em um botão abaixo para alterar." Foreground="#D6C8FF" FontSize="13" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+            <StackPanel Grid.Row="2" VerticalAlignment="Center">
+
+                <Border Background="#0F0521" BorderBrush="#4B2A86" BorderThickness="1" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                    <Grid>
+                        <TextBlock Text="▶ Jogar / Confirmar:" Foreground="#FFFFFF" FontSize="14" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnPlay" Content="Botão 0" HorizontalAlignment="Right" Width="100" Padding="5" Cursor="Hand" Click="MapBtn_Click" Background="#4B2A86" Foreground="White" BorderThickness="0"/>
+                    </Grid>
+                </Border>
+
+                <Border Background="#0F0521" BorderBrush="#4B2A86" BorderThickness="1" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                    <Grid>
+                        <TextBlock Text="➕ Adicionar Jogo:" Foreground="#FFFFFF" FontSize="14" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnAdd" Content="Botão 2" HorizontalAlignment="Right" Width="100" Padding="5" Cursor="Hand" Click="MapBtn_Click" Background="#4B2A86" Foreground="White" BorderThickness="0"/>
+                    </Grid>
+                </Border>
+
+                <Border Background="#0F0521" BorderBrush="#4B2A86" BorderThickness="1" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                    <Grid>
+                        <TextBlock Text="⚙️ Menu Opções (Botão Direito):" Foreground="#FFFFFF" FontSize="14" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnOptions" Content="Botão 6" HorizontalAlignment="Right" Width="100" Padding="5" Cursor="Hand" Click="MapBtn_Click" Background="#4B2A86" Foreground="White" BorderThickness="0"/>
+                    </Grid>
+                </Border>
+
+                <Border Background="#0F0521" BorderBrush="#4B2A86" BorderThickness="1" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                    <Grid>
+                        <TextBlock Text="↩ Voltar / Cancelar:" Foreground="#FFFFFF" FontSize="14" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnBack" Content="Botão 1" HorizontalAlignment="Right" Width="100" Padding="5" Cursor="Hand" Click="MapBtn_Click" Background="#4B2A86" Foreground="White" BorderThickness="0"/>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button Content="Cancelar" Click="Cancel_Click" Background="Transparent" Foreground="#D6C8FF" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0"/>
+                <Button Content="Salvar" Click="Save_Click" Background="#A855F7" Foreground="White" BorderThickness="0" Padding="20,8" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

@@ -12,6 +12,7 @@
         Background="Transparent"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
+        KeyboardNavigation.DirectionalNavigation="Continue"
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
@@ -109,6 +110,15 @@
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
                             </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFFFFF"/>
+                                <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
+                                <Setter TargetName="Bd" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#FFFFFF" BlurRadius="12" Opacity="0.6" ShadowDepth="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -186,6 +196,15 @@
                                 <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryGradient}"/>
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="#C084FC"/>
                                 <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFFFFF"/>
+                                <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
+                                <Setter TargetName="Bd" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#FFFFFF" BlurRadius="12" Opacity="0.6" ShadowDepth="0"/>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -338,17 +357,27 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="Resetar Configurações" 
+                    <Button x:Name="BtnMap" Content="🎮 Configurar Controle" 
+                            Command="{Binding OpenControllerMappingCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            Padding="16,8"
+                            Margin="0,0,10,0"
+                            PreviewKeyDown="HeaderButton_PreviewKeyDown"/>
+
+                    <Button x:Name="BtnReset" Content="Resetar Configurações" 
                             Command="{Binding ResetAllSettingsCommand}"
                             Style="{StaticResource DangerButton}"
                             Padding="16,8"
-                            MinWidth="180"/>
+                            MinWidth="180"
+                            PreviewKeyDown="HeaderButton_PreviewKeyDown"/>
                 </StackPanel>
             </Grid>
         </Border>
 
         <Border Grid.Row="1" Margin="14,0,14,14">
-            <TabControl>
+            <TabControl x:Name="MainTabControl" 
+                        KeyboardNavigation.DirectionalNavigation="Continue"
+                        PreviewKeyDown="MainTabControl_PreviewKeyDown">
 
                 <TabItem Header="Jogos">
                     <Grid Background="#0F0521">
@@ -366,14 +395,20 @@
                             </DockPanel>
                         </Border>
 
-                        <ListBox Grid.Row="1"
+                        <ListBox x:Name="GamesList"
+                                 Grid.Row="1"
                                  ItemsSource="{Binding Games}"
                                  SelectedItem="{Binding SelectedGame}"
                                  Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  Background="Transparent"
                                  BorderThickness="0"
-                                 Padding="0">
+                                 Padding="0"
+                                 KeyboardNavigation.DirectionalNavigation="Continue">
+
+                            <ListBox.InputBindings>
+                                <KeyBinding Key="Return" Command="{Binding PlaySelectedCommand}" />
+                            </ListBox.InputBindings>
 
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -442,6 +477,15 @@
                                             <ContextMenu>
                                                 <MenuItem Header="Jogar" FontWeight="Bold" Command="{Binding Source={StaticResource Proxy}, Path=Data.PlaySelectedCommand}" CommandParameter="{Binding}"/>
                                                 <Separator/>
+                                                <MenuItem Header="Associar Emulador" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.AvailablePlatforms}">
+                                                    <MenuItem.ItemContainerStyle>
+                                                        <Style TargetType="MenuItem">
+                                                            <Setter Property="Header" Value="{Binding Name}"/>
+                                                            <Setter Property="Command" Value="{Binding Source={StaticResource Proxy}, Path=Data.SetGameEmulatorCommand}"/>
+                                                            <Setter Property="CommandParameter" Value="{Binding}"/>
+                                                        </Style>
+                                                    </MenuItem.ItemContainerStyle>
+                                                </MenuItem>
                                                 <MenuItem Header="Definir como PC" Command="{Binding Source={StaticResource Proxy}, Path=Data.ClearGameEmulatorCommand}" />
                                                 <Separator/>
                                                 <MenuItem Header="Alterar Capa" Command="{Binding Source={StaticResource Proxy}, Path=Data.ChangeGameImageCommand}" CommandParameter="{Binding}"/>
@@ -465,7 +509,8 @@
                         <Border CornerRadius="12" BorderBrush="#4B2A86" BorderThickness="1" Padding="12" Margin="0,0,0,12" Background="#12002A">
                             <Button Content="Adicionar Emulador" Command="{Binding AddEmulatorCommand}" MinWidth="180" HorizontalAlignment="Left"/>
                         </Border>
-                        <ListBox Grid.Row="1" ItemsSource="{Binding Emulators}" SelectedItem="{Binding SelectedEmulator}" Background="Transparent" BorderThickness="0">
+
+                        <ListBox x:Name="EmulatorsList" Grid.Row="1" ItemsSource="{Binding Emulators}" SelectedItem="{Binding SelectedEmulator}" Background="Transparent" BorderThickness="0" Padding="0" KeyboardNavigation.DirectionalNavigation="Continue">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <WrapPanel Orientation="Horizontal"/>
@@ -495,6 +540,27 @@
                             </ListBox.ItemTemplate>
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
+                                    <Setter Property="Margin" Value="4"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border x:Name="Bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="2" CornerRadius="14" Padding="2">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Bd" Property="BorderBrush" Value="#C084FC"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="Bd" Property="BorderBrush" Value="#A855F7"/>
+                                                        <Setter TargetName="Bd" Property="Background" Value="#10A855F7"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
                                             <ContextMenu>
@@ -528,7 +594,8 @@
                                   SelectedItem="{Binding SelectedMapping}"
                                   Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
                                   PreviewMouseRightButtonDown="MappingsGrid_PreviewMouseRightButtonDown" 
-                                  SelectionChanged="MappingsGrid_SelectionChanged">
+                                  SelectionChanged="MappingsGrid_SelectionChanged"
+                                  KeyboardNavigation.DirectionalNavigation="Continue">
 
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
@@ -608,7 +675,6 @@
                                             </DockPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
-
                                     <DataGridTemplateColumn.CellEditingTemplate>
                                         <DataTemplate>
                                             <DockPanel LastChildFill="True" Background="#1A0B34">
