@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gameoteca</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <img src="/images/joy.png" alt="logo da Gameoteca" class="imgtitle" />
+          <div class="brand-text">GAMEOTECA</div>
+        </div>
+
+        <nav class="main-nav" id="mainNav">
+          <a href="#inicio" class="nav-link active" data-target="inicio"
+            >Início</a
+          >
+          <a href="#download" class="nav-link" data-target="download"
+            >Download</a
+          >
+          <a href="#contrate" class="nav-link" data-target="contrate"
+            >Contrate-nos</a
+          >
+        </nav>
+
+        <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <main class="hero">
+      <div class="hero-overlay"></div>
+
+      <div class="hero-bg-shapes" aria-hidden="true">
+        <span class="shape shape-1"></span>
+        <span class="shape shape-2"></span>
+        <span class="shape shape-3"></span>
+        <span class="shape shape-4"></span>
+      </div>
+
+      <section class="hero-content">
+        <div class="panel active" id="inicio">
+          <div class="splash-wrap">
+            <img
+              src="/images/logo.png"
+              alt="Tela inicial da Gameoteca"
+              class="splash-image"
+            />
+          </div>
+          <p class="eyebrow">SUA EXPERIÊNCIA GAMER</p>
+          <h3></h3>
+
+          <p class="description">
+            Uma central moderna para gerenciar jogos, emuladores e bibliotecas
+            em um só lugar.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#download" class="cta primary" data-target="download"
+              >Baixar agora</a
+            >
+          </div>
+        </div>
+
+        <div class="panel" id="download">
+          <img src="/images/joy.png" alt="logo da Gameoteca" class="logo" />
+          <p class="eyebrow">DOWNLOAD</p>
+
+          <div class="download-card">
+            <div class="download-item">
+              <span class="download-label">Versão</span>
+              <strong>Desktop Edition</strong>
+            </div>
+
+            <div class="download-item">
+              <span class="download-label">Sistema</span>
+              <strong>Windows x64</strong>
+            </div>
+
+            <div class="download-item">
+              <span class="download-label">Status</span>
+              <strong>Disponível</strong>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <a href="#" class="cta primary">Fazer download</a>
+          </div>
+        </div>
+
+        <div class="panel" id="contrate">
+          <div class="icon-placeholder small"></div>
+          <p class="eyebrow">CONTRATE-NOS</p>
+         
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
