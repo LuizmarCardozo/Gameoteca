@@ -13,7 +13,8 @@ namespace Gameoteca.Services
     {
         private static readonly JsonSerializerOptions JsonOpts = new()
         {
-            WriteIndented = true
+            WriteIndented = false, 
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
         };
 
         private readonly string _filePath;

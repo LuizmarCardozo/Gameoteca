@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Windows.Threading;
+using System.Windows;
 
 namespace Gameoteca.Services
 {
@@ -14,32 +15,28 @@ namespace Gameoteca.Services
         private bool _isRunning;
         private DPadDirection _previousDPad = DPadDirection.None;
 
-        // Eventos
         public event EventHandler<int>? ButtonPressed;
         public event EventHandler<int>? ButtonReleased;
         public event EventHandler<JoystickAxisEventArgs>? AxisChanged;
-        public event EventHandler<DPadDirection>? DPadChanged; // NOVO: Evento para o D-Pad
+        public event EventHandler<DPadDirection>? DPadChanged;
 
         public JoystickService()
         {
             _directInput = new DirectInput();
-            _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) }; // Reduzido para respostas mais rápidas
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) };
             _timer.Tick += PollJoystick;
         }
 
         public void Start()
         {
             if (_isRunning) return;
-
             var devices = _directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
             var deviceInstance = devices.FirstOrDefault();
-
             if (deviceInstance == null) return;
 
             _joystick = new Joystick(_directInput, deviceInstance.InstanceGuid);
             _joystick.Properties.BufferSize = 128;
             _joystick.Acquire();
-
             _previousState = _joystick.GetCurrentState();
             _timer.Start();
             _isRunning = true;
@@ -56,12 +53,23 @@ namespace Gameoteca.Services
         {
             if (_joystick == null) return;
 
+            // ✅ OTIMIZAÇÃO: Se a Gameoteca não for a janela ativa, reduz a CPU
+            if (Application.Current.MainWindow != null && !Application.Current.MainWindow.IsActive)
+            {
+                if (_timer.Interval.TotalMilliseconds != 150)
+                    _timer.Interval = TimeSpan.FromMilliseconds(150); // Modo descanso
+            }
+            else
+            {
+                if (_timer.Interval.TotalMilliseconds != 20)
+                    _timer.Interval = TimeSpan.FromMilliseconds(20); // Modo ativo
+            }
+
             try
             {
                 _joystick.Poll();
                 var state = _joystick.GetCurrentState();
 
-                // 1. Detectar Botões
                 for (int i = 0; i < state.Buttons.Length; i++)
                 {
                     if (state.Buttons[i] && !_previousState.Buttons[i])
@@ -70,21 +78,18 @@ namespace Gameoteca.Services
                         ButtonReleased?.Invoke(this, i);
                 }
 
-                // 2. Detectar Analógicos (Normalizado: Centro é 0, vai de -32767 a +32768)
                 int normX = state.X - 32767;
                 int prevNormX = _previousState.X - 32767;
-                if (Math.Abs(normX - prevNormX) > 100) // Pequeno filtro de ruído
+                if (Math.Abs(normX - prevNormX) > 150)
                     AxisChanged?.Invoke(this, new JoystickAxisEventArgs(AxisType.X, normX));
 
                 int normY = state.Y - 32767;
                 int prevNormY = _previousState.Y - 32767;
-                if (Math.Abs(normY - prevNormY) > 100)
+                if (Math.Abs(normY - prevNormY) > 150)
                     AxisChanged?.Invoke(this, new JoystickAxisEventArgs(AxisType.Y, normY));
 
-                // 3. Detectar D-Pad (Point of View Hat)
                 int pov = state.PointOfViewControllers[0];
                 DPadDirection currentDpad = GetDPadDirection(pov);
-
                 if (currentDpad != _previousDPad)
                 {
                     DPadChanged?.Invoke(this, currentDpad);
@@ -93,13 +98,9 @@ namespace Gameoteca.Services
 
                 _previousState = state;
             }
-            catch
-            {
-                Stop();
-            }
+            catch { Stop(); }
         }
 
-        // Traduz o ângulo do POV para Direções fáceis de usar
         private DPadDirection GetDPadDirection(int povValue)
         {
             if (povValue == -1) return DPadDirection.None;
@@ -120,7 +121,6 @@ namespace Gameoteca.Services
 
     public enum AxisType { X, Y, Z, Rx, Ry, Rz }
     public enum DPadDirection { None, Up, Right, Down, Left }
-
     public class JoystickAxisEventArgs : EventArgs
     {
         public AxisType Axis { get; }

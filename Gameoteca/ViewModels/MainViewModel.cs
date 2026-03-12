@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Gameoteca.Models;
 using Gameoteca.Services;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,7 +15,7 @@ using System.Runtime.InteropServices;
 
 namespace Gameoteca.ViewModels
 {
-    // SIMULADOR DE TECLADO: Faz o Controle conversar com os menus e botões do Windows
+    // SIMULADOR DE TECLADO
     public static class KeyboardSimulator
     {
         [DllImport("user32.dll", SetLastError = true)]
@@ -56,14 +57,15 @@ namespace Gameoteca.ViewModels
         [ObservableProperty] private FolderMapping? _selectedMapping;
         [ObservableProperty] private int _selectedTabIndex;
 
-        // Avisa se a caixa de opções do botão direito está aberta
+        // Propriedade para inicialização com o Windows
+        [ObservableProperty] private bool _runOnStartup;
+
         public static bool IsContextMenuOpen { get; set; } = false;
 
         public event EventHandler? OpenContextMenuRequested;
         public ControllerConfig ControllerSettings { get; set; } = ControllerConfig.Load();
 
         private const int GridColumns = 5;
-
         private bool _isAxisXActive;
         private bool _isAxisYActive;
 
@@ -76,7 +78,51 @@ namespace Gameoteca.ViewModels
             _joystickService.DPadChanged += OnDPadChanged;
 
             Emulators.CollectionChanged += (s, e) => OnPropertyChanged(nameof(AvailablePlatforms));
+
+            CheckStartupState();
             _ = InitAsync();
+        }
+
+        private void CheckStartupState()
+        {
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", false);
+                if (key != null)
+                {
+                    _runOnStartup = key.GetValue("Gameoteca") != null;
+                }
+            }
+            catch { }
+        }
+
+        partial void OnRunOnStartupChanged(bool value)
+        {
+            SetStartup(value);
+        }
+
+        private void SetStartup(bool enable)
+        {
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
+                if (key != null)
+                {
+                    if (enable)
+                    {
+                        string? path = Environment.ProcessPath;
+                        if (path != null) key.SetValue("Gameoteca", $"\"{path}\"");
+                    }
+                    else
+                    {
+                        key.DeleteValue("Gameoteca", false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _dialogs.ShowError($"Erro ao configurar inicialização: {ex.Message}", "Erro");
+            }
         }
 
         private async Task InitAsync()
@@ -91,6 +137,17 @@ namespace Gameoteca.ViewModels
                 m.PropertyChanged += Mapping_PropertyChanged;
                 Mappings.Add(m);
             }
+
+            // ✅ OTIMIZAÇÃO: Limpa a RAM após carregar tudo
+            ReduceMemoryUsage();
+        }
+
+        // ✅ MÉTODO DE OTIMIZAÇÃO DE MEMÓRIA
+        private void ReduceMemoryUsage()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
         }
 
         public IEnumerable<PlatformOption> AvailablePlatforms
@@ -108,7 +165,6 @@ namespace Gameoteca.ViewModels
         [RelayCommand]
         private void OpenControllerMapping()
         {
-            // Desconecta o controle da tela principal para não rodar comandos por acidente
             _joystickService.ButtonPressed -= OnJoystickButtonPressed;
             _joystickService.AxisChanged -= OnJoystickAxisChanged;
             _joystickService.DPadChanged -= OnDPadChanged;
@@ -119,7 +175,9 @@ namespace Gameoteca.ViewModels
                 ControllerSettings = ControllerConfig.Load();
             }
 
-            // Reconecta após fechar
+            // ✅ OTIMIZAÇÃO: Limpa rastros de memória da janela recém-fechada
+            ReduceMemoryUsage();
+
             _joystickService.ButtonPressed += OnJoystickButtonPressed;
             _joystickService.AxisChanged += OnJoystickAxisChanged;
             _joystickService.DPadChanged += OnDPadChanged;
@@ -129,9 +187,6 @@ namespace Gameoteca.ViewModels
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                // ✅ A MÁGICA QUE CORRIGE O BUG: 
-                // Agora o botão do controle VIRA a tecla Enter. 
-                // Se o foco estiver em Resetar, ele vai Resetar. Se estiver no Jogo, o jogo roda!
                 if (button == ControllerSettings.ButtonPlay)
                 {
                     KeyboardSimulator.PressKey(KeyboardSimulator.VK_RETURN);
@@ -155,7 +210,6 @@ namespace Gameoteca.ViewModels
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                // Navegação 100% nativa simulando as Setinhas do Teclado
                 if (direction == DPadDirection.Up) KeyboardSimulator.PressKey(KeyboardSimulator.VK_UP);
                 else if (direction == DPadDirection.Down) KeyboardSimulator.PressKey(KeyboardSimulator.VK_DOWN);
                 else if (direction == DPadDirection.Left) KeyboardSimulator.PressKey(KeyboardSimulator.VK_LEFT);

@@ -24,6 +24,36 @@
             <GradientStop Color="#4C1D95" Offset="1"/>
         </LinearGradientBrush>
 
+        <Style TargetType="CheckBox" x:Key="DarkCheckBox">
+            <Setter Property="Foreground" Value="#D6C8FF"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,15,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal" Background="Transparent">
+                            <Border x:Name="Border" Width="20" Height="20" Background="#1A0B34" BorderBrush="#4B2A86" BorderThickness="1" CornerRadius="4" Margin="0,0,8,0">
+                                <Path x:Name="CheckMark" Data="M3,10 L8,15 L17,4" Stroke="#A855F7" StrokeThickness="2" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#A855F7"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#C084FC"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style TargetType="ContextMenu">
             <Setter Property="Background" Value="#1A0B34"/>
             <Setter Property="BorderBrush" Value="#4B2A86"/>
@@ -357,6 +387,12 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <CheckBox Content="Iniciar com o Windows" 
+                              Style="{StaticResource DarkCheckBox}"
+                              IsChecked="{Binding RunOnStartup, Mode=TwoWay}"
+                              ToolTip="Abre a Gameoteca automaticamente ao ligar o PC"
+                              Focusable="False"/>
                     <Button x:Name="BtnMap" Content="🎮 Configurar Controle" 
                             Command="{Binding OpenControllerMappingCommand}"
                             Style="{StaticResource PrimaryButton}"
@@ -376,6 +412,7 @@
 
         <Border Grid.Row="1" Margin="14,0,14,14">
             <TabControl x:Name="MainTabControl" 
+                        SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
                         KeyboardNavigation.DirectionalNavigation="Continue"
                         PreviewKeyDown="MainTabControl_PreviewKeyDown">
 
@@ -477,15 +514,7 @@
                                             <ContextMenu>
                                                 <MenuItem Header="Jogar" FontWeight="Bold" Command="{Binding Source={StaticResource Proxy}, Path=Data.PlaySelectedCommand}" CommandParameter="{Binding}"/>
                                                 <Separator/>
-                                                <MenuItem Header="Associar Emulador" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.AvailablePlatforms}">
-                                                    <MenuItem.ItemContainerStyle>
-                                                        <Style TargetType="MenuItem">
-                                                            <Setter Property="Header" Value="{Binding Name}"/>
-                                                            <Setter Property="Command" Value="{Binding Source={StaticResource Proxy}, Path=Data.SetGameEmulatorCommand}"/>
-                                                            <Setter Property="CommandParameter" Value="{Binding}"/>
-                                                        </Style>
-                                                    </MenuItem.ItemContainerStyle>
-                                                </MenuItem>
+                                                
                                                 <MenuItem Header="Definir como PC" Command="{Binding Source={StaticResource Proxy}, Path=Data.ClearGameEmulatorCommand}" />
                                                 <Separator/>
                                                 <MenuItem Header="Alterar Capa" Command="{Binding Source={StaticResource Proxy}, Path=Data.ChangeGameImageCommand}" CommandParameter="{Binding}"/>
