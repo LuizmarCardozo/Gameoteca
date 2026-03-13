@@ -246,10 +246,11 @@ a {
   display: none;
   padding: 34px 34px 28px;
   border-radius: 22px;
+  
   background: linear-gradient(
     180deg,
-    rgba(42, 5, 68, 0.5),
-    rgba(18, 3, 29, 0.7)
+    rgba(42, 5, 68, 0.2), 
+    rgba(18, 3, 29, 0.3)
   );
   border: 1px solid rgba(151, 86, 255, 0.18);
   box-shadow:
