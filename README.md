@@ -64,7 +64,5 @@ A Gameoteca foi desenvolvida focando em performance e arquitetura limpa:
 * **Ookii.Dialogs.Wpf** para diálogos nativos do Windows.
 
 ---
-## Fluxograma de execução 
-
 
 
