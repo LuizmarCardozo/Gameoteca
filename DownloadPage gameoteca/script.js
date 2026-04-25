@@ -49,7 +49,7 @@ links.forEach((link) => {
   });
 });
 
-// 👇 QUANDO A PÁGINA TERMINAR DE CARREGAR (F5)
+// QUANDO A PÁGINA TERMINAR DE CARREGAR (F5)
 window.addEventListener("load", () => {
   const hash = window.location.hash.replace("#", "");
   const allowed = ["inicio", "download", "contrate"];
