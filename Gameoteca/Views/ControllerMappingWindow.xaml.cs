@@ -66,7 +66,15 @@ namespace Gameoteca.Views
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            _config.Save();
+            // Save() agora devolve false se não conseguiu gravar. Se ignorássemos, a janela fecharia
+            // como se tivesse salvado e o mapeamento seria perdido sem você saber.
+            // Em caso de falha mantemos a janela aberta para você tentar de novo ou cancelar.
+            if (!_config.Save())
+            {
+                new MessageWindow("Erro ao salvar", "Não foi possível salvar o mapeamento do controle. Tente novamente.").ShowDialog();
+                return;
+            }
+
             _joystick.ButtonPressed -= OnJoystickButtonPressed;
             DialogResult = true;
         }

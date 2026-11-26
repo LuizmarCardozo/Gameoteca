@@ -30,6 +30,12 @@ namespace Gameoteca.ViewModels
 
         public static void PressKey(byte keyCode)
         {
+            // ÚLTIMA LINHA DE DEFESA: keybd_event injeta a tecla no Windows INTEIRO, na janela que estiver
+            // em foco. Se a Gameoteca não estiver em primeiro plano (ex.: você está num jogo), a tecla
+            // iria parar dentro do jogo. Os handlers do controle já filtram isso, mas deixar a trava
+            // aqui garante que NENHUM caminho de código consiga vazar teclas para fora do app.
+            if (!JoystickService.IsAppInForeground) return;
+
             keybd_event(keyCode, 0, 0, UIntPtr.Zero);
             keybd_event(keyCode, 0, 2, UIntPtr.Zero);
         }
@@ -127,19 +133,34 @@ namespace Gameoteca.ViewModels
 
         private async Task InitAsync()
         {
-            var state = await _storage.LoadAsync();
-            Emulators.Clear(); foreach (var e in state.Emulators) Emulators.Add(e);
-            Games.Clear(); foreach (var g in state.Games) Games.Add(g);
-            Mappings.Clear();
-
-            foreach (var m in state.Mappings)
+            // Este método é chamado com `_ = InitAsync()` (disparar e esquecer). Sem try/catch, uma
+            // exceção aqui ficaria "engolida" numa Task ignorada: o app abriria com a biblioteca vazia
+            // e sem nenhuma explicação. Por isso tratamos e mostramos o erro.
+            try
             {
-                m.PropertyChanged += Mapping_PropertyChanged;
-                Mappings.Add(m);
-            }
+                var state = await _storage.LoadAsync();
+                Emulators.Clear(); foreach (var e in state.Emulators) Emulators.Add(e);
+                Games.Clear(); foreach (var g in state.Games) Games.Add(g);
+                Mappings.Clear();
 
-            // ✅ OTIMIZAÇÃO: Limpa a RAM após carregar tudo
-            ReduceMemoryUsage();
+                foreach (var m in state.Mappings)
+                {
+                    m.PropertyChanged += Mapping_PropertyChanged;
+                    Mappings.Add(m);
+                }
+
+                // ✅ OTIMIZAÇÃO: Limpa a RAM após carregar tudo
+                ReduceMemoryUsage();
+
+                // Se o arquivo estava danificado, o LibraryStorage já se recuperou (backup/vazio);
+                // aqui só avisamos o usuário, DEPOIS de carregar, para o aviso não travar a carga.
+                if (_storage.LoadWarning != null)
+                    _dialogs.ShowError(_storage.LoadWarning, "Biblioteca");
+            }
+            catch (Exception ex)
+            {
+                _dialogs.ShowError($"Erro ao carregar a biblioteca:\n{ex.Message}", "Erro");
+            }
         }
 
         // ✅ MÉTODO DE OTIMIZAÇÃO DE MEMÓRIA
@@ -185,6 +206,11 @@ namespace Gameoteca.ViewModels
 
         private void OnJoystickButtonPressed(object? sender, int button)
         {
+            // Se você está num jogo/emulador, os botões do controle pertencem a ele.
+            // Sem esta checagem, apertar "A" no jogo também mandava Enter (e "B" mandava Esc)
+            // para dentro do jogo, e o botão de "Adicionar" abria a janela da Gameoteca por cima.
+            if (!JoystickService.IsAppInForeground) return;
+
             Application.Current.Dispatcher.Invoke(() =>
             {
                 if (button == ControllerSettings.ButtonPlay)
@@ -208,6 +234,9 @@ namespace Gameoteca.ViewModels
 
         private void OnDPadChanged(object? sender, DPadDirection direction)
         {
+            // Mesmo motivo do botão: o D-Pad do jogo não pode virar setas do teclado fora da Gameoteca.
+            if (!JoystickService.IsAppInForeground) return;
+
             Application.Current.Dispatcher.Invoke(() =>
             {
                 if (direction == DPadDirection.Up) KeyboardSimulator.PressKey(KeyboardSimulator.VK_UP);
@@ -220,6 +249,16 @@ namespace Gameoteca.ViewModels
         private void OnJoystickAxisChanged(object? sender, JoystickAxisEventArgs e)
         {
             const int deadZone = 15000;
+
+            // Fora de primeiro plano ignoramos o analógico. Também zeramos as "travas" de eixo:
+            // se você soltar o analógico enquanto joga, a trava ficaria presa em "ativo" e o primeiro
+            // movimento ao voltar para a Gameoteca seria ignorado.
+            if (!JoystickService.IsAppInForeground)
+            {
+                _isAxisXActive = false;
+                _isAxisYActive = false;
+                return;
+            }
 
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -281,12 +320,31 @@ namespace Gameoteca.ViewModels
             }
         }
 
-        private async Task PersistAsync() => await _storage.SaveAsync(new LibraryState
+        // Evita encher a tela de janelas de erro se o disco estiver cheio e vários salvamentos falharem seguidos.
+        private bool _saveErrorShown;
+
+        private async Task PersistAsync()
         {
-            Games = Games.ToList(),
-            Emulators = Emulators.ToList(),
-            Mappings = Mappings.ToList()
-        });
+            // Vários chamadores usam `_ = PersistAsync()` (sem await). Se a exceção escapasse daqui,
+            // ela sumiria silenciosamente e você acharia que salvou. Capturamos e avisamos uma vez.
+            try
+            {
+                await _storage.SaveAsync(new LibraryState
+                {
+                    // ToList() tira uma "foto" das coleções no momento da chamada (thread da UI).
+                    Games = Games.ToList(),
+                    Emulators = Emulators.ToList(),
+                    Mappings = Mappings.ToList()
+                });
+                _saveErrorShown = false; // voltou a funcionar: o próximo erro pode avisar de novo
+            }
+            catch (Exception ex)
+            {
+                if (_saveErrorShown) return;
+                _saveErrorShown = true;
+                _dialogs.ShowError($"Não foi possível salvar a biblioteca:\n{ex.Message}", "Erro ao salvar");
+            }
+        }
 
         [RelayCommand]
         private async Task ClearGameEmulator(GameItem? item)

@@ -13,9 +13,13 @@
 		<Content Include="Assets\APP.ico" />
 	</ItemGroup>
 
-	<!-- SPLASH SCREEN -->
+	<!-- SPLASH SCREEN
+	     IMPORTANTE: usamos <Resource> e NAO <SplashScreen>. Com <SplashScreen>, o WPF gera
+	     codigo no Main() que exibe a splash automaticamente ANTES do OnStartup. Como o App.xaml.cs
+	     ja cria e controla a sua propria splash (3s + fade), as duas apareciam ao mesmo tempo.
+	     Com <Resource>, a imagem so e embutida no .exe e quem exibe e apenas o seu codigo. -->
 	<ItemGroup>
-		<SplashScreen Include="Assets\SPLASH.jpg" />
+		<Resource Include="Assets\SPLASH.jpg" />
 	</ItemGroup>
 
 	<ItemGroup>
